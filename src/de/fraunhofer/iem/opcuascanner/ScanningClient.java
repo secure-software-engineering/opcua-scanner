@@ -3,16 +3,27 @@ package de.fraunhofer.iem.opcuascanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+
 //TODO import client sdk from milo
 
-public class ScanningClient{
+public class ScanningClient {
 
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
 
-    public static void main(String[] args){
-        logger.info("Started");
+    public static void main(String[] args) {
+        logger.info("Scanner started");
 
-        //TODO get range of ips to check
+        List<InetAddress> ownIps = getOwnIpAddresses();
+        for (InetAddress ownIp : ownIps){
+            logger.info("Own ip: "+ ownIp);
+        }
+
+
         //TODO run client for each
 
         //TODO second phase: Try to set up connection anonymously
@@ -22,6 +33,32 @@ public class ScanningClient{
         //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressable errors
 
         // TODO report results
+    }
+
+    public static List<InetAddress> getOwnIpAddresses() {
+        List<InetAddress> ownInetAddresses = new ArrayList<>();
+        Enumeration<NetworkInterface> nets;
+        try {
+            nets = NetworkInterface.getNetworkInterfaces();
+            logger.debug("Network interfaces obtained.");
+        } catch (SocketException e) {
+            logger.error("Network interfaces could not be obtained.");
+            return ownInetAddresses;
+        }
+        for (NetworkInterface netint : Collections.list(nets)) {
+            try {
+                if (!netint.isUp() || netint.isLoopback() || netint.isVirtual()) {
+                    continue;
+                }
+            } catch (SocketException e) {
+                logger.debug("Socket exception for network interface "+ netint.getDisplayName());
+                continue;
+            }
+            Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+            ownInetAddresses.addAll(Collections.list(inetAddresses));
+        }
+        return ownInetAddresses;
+
     }
 }
 
