@@ -3,6 +3,7 @@ package de.fraunhofer.iem.opcuascanner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +22,15 @@ public class ScanningClient {
         List<InetAddress> ownIps = getOwnIpAddresses();
         for (InetAddress ownIp : ownIps){
             logger.info("Own ip: "+ ownIp);
+        }
+        for (InetAddress ownIp : ownIps){
+            if (ownIp instanceof Inet4Address){
+                List<InetAddress> reachableHosts = getReachableHosts(ownIp);
+                logger.info("Reachable hosts for own ip: "+ ownIp);
+                for (InetAddress reachableHost : reachableHosts){
+                    logger.info("Reachable host "+ reachableHost);
+                }
+            }
         }
 
 
@@ -58,7 +68,25 @@ public class ScanningClient {
             ownInetAddresses.addAll(Collections.list(inetAddresses));
         }
         return ownInetAddresses;
+    }
 
+    public static List<InetAddress> getReachableHosts(InetAddress inetAddress){
+        List<InetAddress> reachableHosts = new ArrayList<>();
+        String ipAddress = inetAddress.toString();
+        ipAddress = ipAddress.substring(1, ipAddress.lastIndexOf('.')) + ".";
+        for (int i = 0; i < 256; i++) {
+            String otherAddress = ipAddress + String.valueOf(i);
+            try {
+                if (InetAddress.getByName(otherAddress).isReachable(50)) {
+                    reachableHosts.add(InetAddress.getByName(otherAddress));
+                }
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return reachableHosts;
     }
 }
 
