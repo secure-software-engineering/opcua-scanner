@@ -1,5 +1,7 @@
 package de.fraunhofer.iem.opcuascanner;
 
+import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
+import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,8 +11,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
-
-//TODO import client sdk from milo
+import java.util.concurrent.ExecutionException;
 
 public class ScanningClient {
 
@@ -21,17 +22,40 @@ public class ScanningClient {
 
         List<InetAddress> ownIps = getOwnIpAddresses();
         for (InetAddress ownIp : ownIps){
-            logger.info("Own ip: "+ ownIp);
+            logger.info("Own ip: {}", ownIp);
         }
         for (InetAddress ownIp : ownIps){
             if (ownIp instanceof Inet4Address){
                 List<InetAddress> reachableHosts = getReachableHosts(ownIp);
-                logger.info("Reachable hosts for own ip: "+ ownIp);
+                logger.info("Reachable hosts for own ip {}", ownIp);
                 for (InetAddress reachableHost : reachableHosts){
-                    logger.info("Reachable host "+ reachableHost);
+                    logger.info("Reachable host {}", reachableHost);
                 }
             }
         }
+
+        for (InetAddress ownIp : ownIps){
+            if (ownIp instanceof Inet4Address){
+                List<InetAddress> reachableHosts = getReachableHosts(ownIp);
+                for (InetAddress reachableHost : reachableHosts){
+                    logger.info("Trying to get endpoints for reachable host {}", reachableHost);
+                    EndpointDescription[] endpoints = new EndpointDescription[0];
+                    try{
+                        endpoints = UaTcpStackClient.getEndpoints(reachableHost.getHostAddress()).get();
+                    } catch (InterruptedException e) {
+                        logger.info("Interrupted Exception");
+                    } catch (ExecutionException e) {
+                        logger.info("Execution Exception");
+                    }
+                    for (EndpointDescription endpoint : endpoints){
+                        logger.info("Endpoint {}"+endpoint.getEndpointUrl());
+                    }
+
+                }
+            }
+        }
+
+
 
 
         //TODO run client for each
@@ -50,7 +74,6 @@ public class ScanningClient {
         Enumeration<NetworkInterface> nets;
         try {
             nets = NetworkInterface.getNetworkInterfaces();
-            logger.debug("Network interfaces obtained.");
         } catch (SocketException e) {
             logger.error("Network interfaces could not be obtained.");
             return ownInetAddresses;
@@ -61,7 +84,7 @@ public class ScanningClient {
                     continue;
                 }
             } catch (SocketException e) {
-                logger.debug("Socket exception for network interface "+ netint.getDisplayName());
+                logger.info("Socket exception for network interface "+ netint.getDisplayName());
                 continue;
             }
             Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
