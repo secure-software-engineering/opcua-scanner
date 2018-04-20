@@ -15,6 +15,10 @@ import java.util.concurrent.ExecutionException;
 
 public class ScanningClient {
 
+    private static final String OPCUA_DEFAULT_PORT = "4840";
+
+    private static final int DEFAULT_CIDR_SUFFIX = 24;
+
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
 
     public static void main(String[] args) {
@@ -24,39 +28,16 @@ public class ScanningClient {
         for (InetAddress ownIp : ownIps){
             logger.info("Own ip: {}", ownIp);
         }
+
+        List<EndpointDescription> allEndpoints = new ArrayList<>();
         for (InetAddress ownIp : ownIps){
             if (ownIp instanceof Inet4Address){
-                List<InetAddress> reachableHosts = getReachableHosts(ownIp);
-                logger.info("Reachable hosts for own ip {}", ownIp);
-                for (InetAddress reachableHost : reachableHosts){
-                    logger.info("Reachable host {}", reachableHost);
+                List<Inet4Address> reachableHosts = getReachableHosts(ownIp, DEFAULT_CIDR_SUFFIX);
+                for (Inet4Address reachableHost : reachableHosts){
+                    allEndpoints.addAll(tryToGetEndpoints(reachableHost));
                 }
             }
         }
-
-        for (InetAddress ownIp : ownIps){
-            if (ownIp instanceof Inet4Address){
-                List<InetAddress> reachableHosts = getReachableHosts(ownIp);
-                for (InetAddress reachableHost : reachableHosts){
-                    logger.info("Trying to get endpoints for reachable host {}", reachableHost);
-                    EndpointDescription[] endpoints = new EndpointDescription[0];
-                    try{
-                        endpoints = UaTcpStackClient.getEndpoints(reachableHost.getHostAddress()).get();
-                    } catch (InterruptedException e) {
-                        logger.info("Interrupted Exception");
-                    } catch (ExecutionException e) {
-                        logger.info("Execution Exception");
-                    }
-                    for (EndpointDescription endpoint : endpoints){
-                        logger.info("Endpoint {}"+endpoint.getEndpointUrl());
-                    }
-
-                }
-            }
-        }
-
-
-
 
         //TODO run client for each
 
@@ -69,7 +50,25 @@ public class ScanningClient {
         // TODO report results
     }
 
-    public static List<InetAddress> getOwnIpAddresses() {
+    private static List<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost){
+        List<EndpointDescription> endpointList = new ArrayList<>();
+        logger.info("Trying to get endpoints for reachable host {}", reachableHost);
+        EndpointDescription[] endpoints = new EndpointDescription[0];
+        try{
+            endpoints = UaTcpStackClient.getEndpoints(reachableHost.getHostAddress()).get();
+        } catch (InterruptedException e) {
+            logger.info("Interrupted Exception");
+        } catch (ExecutionException e) {
+            logger.info("Execution Exception");
+        }
+        for (EndpointDescription endpoint : endpoints){
+            logger.info("Endpoint {}"+endpoint.getEndpointUrl());
+            endpointList.add(endpoint);
+        }
+        return endpointList;
+    }
+
+    private static List<InetAddress> getOwnIpAddresses() {
         List<InetAddress> ownInetAddresses = new ArrayList<>();
         Enumeration<NetworkInterface> nets;
         try {
@@ -93,18 +92,30 @@ public class ScanningClient {
         return ownInetAddresses;
     }
 
-    public static List<InetAddress> getReachableHosts(InetAddress inetAddress){
-        List<InetAddress> reachableHosts = new ArrayList<>();
-        String ipAddress = inetAddress.toString();
+    //TODO: Scan for specific port
+    //TODO: Allow configuring subnet size
+
+
+    /**
+     * Scans a subnet for reachable hosts depending on the ip and the cidrSuffix, which signifies unchanged bits from
+     * the start of the ip address.
+     * For example, 131.234.44.70/24 will scan hosts whose ip address starts with 131.234.44., so 256 hosts.
+     * Accordingly, 131.234.44.70/16 will scan hosts whose ip address starts with 131.234., so 256*256.
+     * The runtime of the scan will change accordingly.
+     * @param ownIP The IP of this host
+     * @param cidrSuffix The
+     * @return A list of addresses including all hosts which could be reached
+     */
+    private static List<Inet4Address> getReachableHosts(InetAddress ownIP, int cidrSuffix){
+        List<Inet4Address> reachableHosts = new ArrayList<>();
+        String ipAddress = ownIP.toString();
         ipAddress = ipAddress.substring(1, ipAddress.lastIndexOf('.')) + ".";
         for (int i = 0; i < 256; i++) {
             String otherAddress = ipAddress + String.valueOf(i);
             try {
                 if (InetAddress.getByName(otherAddress).isReachable(50)) {
-                    reachableHosts.add(InetAddress.getByName(otherAddress));
+                    reachableHosts.add((Inet4Address)InetAddress.getByName(otherAddress));
                 }
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
