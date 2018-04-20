@@ -75,24 +75,20 @@ public class ScanningClient {
             logger.error("Network interfaces could not be obtained.");
             return ownInetAddresses;
         }
-        for (NetworkInterface netint : Collections.list(nets)) {
+        for (NetworkInterface netInt : Collections.list(nets)) {
             try {
-                if (!netint.isUp() || netint.isLoopback() || netint.isVirtual()) {
+                if (!netInt.isUp() || netInt.isLoopback() || netInt.isVirtual()) {
                     continue;
                 }
             } catch (SocketException e) {
-                logger.info("Socket exception for network interface " + netint.getDisplayName());
+                logger.info("Socket exception for network interface " + netInt.getDisplayName());
                 continue;
             }
-            Enumeration<InetAddress> inetAddresses = netint.getInetAddresses();
+            Enumeration<InetAddress> inetAddresses = netInt.getInetAddresses();
             ownInetAddresses.addAll(Collections.list(inetAddresses));
         }
         return ownInetAddresses;
     }
-
-    //TODO: Scan for specific port
-    //TODO: Allow configuring subnet size
-
 
     /**
      * Scans a subnet for reachable hosts depending on the ip and the cidrSuffix, which signifies unchanged bits from
