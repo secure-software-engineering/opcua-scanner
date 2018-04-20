@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 
 public class ScanningClient {
 
@@ -27,15 +26,18 @@ public class ScanningClient {
             logger.info("Own ip: {}", ownIp);
         }
 
-        List<EndpointDescription> allEndpoints = new ArrayList<>();
+        List<Inet4Address> reachableHosts = new ArrayList<>();
         for (InetAddress ownIp : ownIps) {
             if (ownIp instanceof Inet4Address) {
-                List<Inet4Address> reachableHosts = getReachableHosts(ownIp, DEFAULT_CIDR_SUFFIX);
-                for (Inet4Address reachableHost : reachableHosts) {
-                    allEndpoints.addAll(tryToGetEndpoints(reachableHost));
-                }
+                reachableHosts.addAll(getReachableHosts(ownIp, DEFAULT_CIDR_SUFFIX));
             }
         }
+
+        List<EndpointDescription> allEndpoints = new ArrayList<>();
+        for (Inet4Address reachableHost : reachableHosts) {
+            allEndpoints.addAll(tryToGetEndpoints(reachableHost));
+        }
+
 
         //TODO run client for each
 
@@ -54,10 +56,8 @@ public class ScanningClient {
         EndpointDescription[] endpoints = new EndpointDescription[0];
         try {
             endpoints = UaTcpStackClient.getEndpoints(reachableHost.getHostAddress()).get();
-        } catch (InterruptedException e) {
-            logger.info("Interrupted Exception");
-        } catch (ExecutionException e) {
-            logger.info("Execution Exception");
+        } catch (Exception e) {
+            logger.info("Exception while getting endpoints {}", e.getMessage());
         }
         for (EndpointDescription endpoint : endpoints) {
             logger.info("Endpoint {}" + endpoint.getEndpointUrl());
