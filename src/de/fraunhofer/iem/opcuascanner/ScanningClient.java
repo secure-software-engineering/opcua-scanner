@@ -46,6 +46,12 @@ public class ScanningClient {
                     .build();
 
             OpcUaClient client = new OpcUaClient(config);
+            try{
+                client.connect();
+            }
+            catch (Exception e){
+                logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
+            }
 
         }
 
@@ -68,7 +74,8 @@ public class ScanningClient {
             logger.info("Exception while getting endpoints {}", e.getMessage());
         }
         for (EndpointDescription endpoint : endpoints) {
-            logger.info("Endpoint {}" + endpoint.getEndpointUrl());
+            logger.info("Endpoint {} with SecurityPolicy {} and MessageSecurityMode {}", endpoint.getEndpointUrl(),
+                    endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
             endpointList.add(endpoint);
         }
         return endpointList;
