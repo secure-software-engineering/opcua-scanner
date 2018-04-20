@@ -1,5 +1,6 @@
 package de.fraunhofer.iem.opcuascanner;
 
+import org.apache.commons.net.util.SubnetUtils;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
@@ -7,10 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 
 public class ScanningClient {
@@ -109,10 +107,13 @@ public class ScanningClient {
      */
     private static List<Inet4Address> getReachableHosts(InetAddress ownIP, int cidrSuffix) {
         List<Inet4Address> reachableHosts = new ArrayList<>();
-        String ipAddress = ownIP.toString();
-        ipAddress = ipAddress.substring(1, ipAddress.lastIndexOf('.')) + ".";
-        for (int i = 0; i < 256; i++) {
-            String otherAddress = ipAddress + String.valueOf(i);
+
+        SubnetUtils utils = new SubnetUtils(ownIP.getHostAddress()+"/"+cidrSuffix);
+        SubnetUtils.SubnetInfo info = utils.getInfo();
+        logger.info("Total usable addresses: {}", info.getAddressCountLong());
+
+        for (String otherAddress : info.getAllAddresses()) {
+            logger.info("Trying to reach host {}", otherAddress);
             try {
                 if (isPortOpen(otherAddress, OPCUA_DEFAULT_PORT)) {
                     reachableHosts.add((Inet4Address) InetAddress.getByName(otherAddress));
