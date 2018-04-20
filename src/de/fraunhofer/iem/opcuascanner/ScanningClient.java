@@ -124,6 +124,14 @@ public class ScanningClient {
         return reachableHosts;
     }
 
+    /**
+     * Checks whether the given port is open on the given ip address by trying to connect
+     * to it by socket. Uses the {@link ScanningClient#DEFAULT_TIMEOUT_IN_MS} and reports the port as not
+     * open if the timeout is exceeded.
+     * @param ipAddress The ip address to which to try to connect
+     * @param port The port on which to connect to the host with the ip address
+     * @return true if a socket connection could be opened, else false
+     */
     public static boolean isPortOpen(String ipAddress, int port) {
         try (Socket socket = new Socket()){
             socket.connect(new InetSocketAddress(ipAddress, port), DEFAULT_TIMEOUT_IN_MS);
