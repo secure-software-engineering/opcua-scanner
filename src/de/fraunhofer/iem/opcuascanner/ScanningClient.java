@@ -29,8 +29,8 @@ public class ScanningClient {
         List<Inet4Address> reachableHosts = new ArrayList<>();
         for (InetAddress ownIp : ownIps) {
             if (ownIp instanceof Inet4Address) {
-                List<Inet4Address> reachableHostsForIP = NetworkUtil.getReachableHosts(ownIp, DEFAULT_CIDR_SUFFIX);
-                reachableHosts.addAll(reachableHostsForIP);
+                List<Inet4Address> reachableHostsForIp = NetworkUtil.getReachableHosts(ownIp, DEFAULT_CIDR_SUFFIX);
+                reachableHosts.addAll(reachableHostsForIp);
             }
         }
 
@@ -39,8 +39,19 @@ public class ScanningClient {
             allEndpoints.addAll(tryToGetEndpoints(reachableHost));
         }
 
-        //TODO run client for each
-        for (EndpointDescription endpoint : allEndpoints){
+        tryToConnectAnonymously(allEndpoints);
+
+        //TODO Second phase: Try to connect with dumb logins
+
+        //TODO second phase: Try to read
+
+        //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressable errors
+
+        // TODO report results
+    }
+
+    private static void tryToConnectAnonymously(List<EndpointDescription> endpoints) {
+        for (EndpointDescription endpoint : endpoints){
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
                     .build();
@@ -52,16 +63,7 @@ public class ScanningClient {
             catch (Exception e){
                 logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
             }
-
         }
-
-        //TODO second phase: Try to set up connection anonymously
-
-        //TODO second phase: Try to read
-
-        //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressable errors
-
-        // TODO report results
     }
 
     private static List<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost) {
