@@ -2,6 +2,7 @@ package de.fraunhofer.iem.opcuascanner;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
+import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
@@ -18,7 +19,7 @@ class ScanningClient {
     private static final String ADDR_PREFIX = "opc.tcp://";
     private static final String ADDR_SUFFIX = ":4840";
 
-    private static final int DEFAULT_CIDR_SUFFIX = 26;
+    private static final int DEFAULT_CIDR_SUFFIX = 27;
 
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
 
@@ -47,7 +48,7 @@ class ScanningClient {
 
         tryToConnectAnonymously(allEndpoints);
 
-        //TODO Second phase: Try to connect with dumb logins
+        tryToConnectWithDumbLogin(allEndpoints);
 
         //TODO second phase: Try to read
 
@@ -56,7 +57,33 @@ class ScanningClient {
         // TODO report results
     }
 
+    private static void tryToConnectWithDumbLogin(List<EndpointDescription> endpoints) {
+        logger.info("Trying connections with dumb logins to all endpoints.");
+        for (EndpointDescription endpoint : endpoints){
+            for (Login login : DumbCredentials.logins){
+                OpcUaClientConfig config = OpcUaClientConfig.builder()
+                        .setEndpoint(endpoint)
+                        .setIdentityProvider(new UsernameProvider(login.username, login.password))
+                        .setKeyPair(null)
+                        .build();
+
+                OpcUaClient client = new OpcUaClient(config);
+                try{
+                    client.connect();
+                    client.disconnect();
+                    AccessPrivileges access = results.get(endpoint.getEndpointUrl());
+                    access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
+                }
+                catch (Exception e){
+                    logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
+                }
+            }
+
+        }
+    }
+
     private static void tryToConnectAnonymously(List<EndpointDescription> endpoints) {
+        logger.info("Trying anonymous connections to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
