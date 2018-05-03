@@ -73,6 +73,7 @@ class ScanningClient {
                     client.disconnect();
                     AccessPrivileges access = results.get(endpoint.getEndpointUrl());
                     access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
+                    logger.info("Succeed in making a connection using dumb credentials to {}", endpoint.getEndpointUrl());
                 }
                 catch (Exception e){
                     logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
@@ -95,6 +96,7 @@ class ScanningClient {
                 client.disconnect();
                 AccessPrivileges access = results.get(endpoint.getEndpointUrl());
                 access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
+                logger.info("Succeed in making an anonymous connection to {}", endpoint.getEndpointUrl());
             }
             catch (Exception e){
                 logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
