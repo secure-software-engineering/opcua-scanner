@@ -10,9 +10,10 @@ import org.slf4j.LoggerFactory;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-public class ScanningClient {
+class ScanningClient {
 
     private static final String ADDR_PREFIX = "opc.tcp://";
     private static final String ADDR_SUFFIX = ":4840";
@@ -20,6 +21,8 @@ public class ScanningClient {
     private static final int DEFAULT_CIDR_SUFFIX = 26;
 
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
+
+    private static HashMap<String,AccessPrivileges> results = new HashMap<>();
 
     public static void main(String[] args) {
         logger.info("Scanner started");
@@ -48,7 +51,7 @@ public class ScanningClient {
 
         //TODO second phase: Try to read
 
-        //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressable errors
+        //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressible errors
 
         // TODO report results
     }
@@ -62,6 +65,9 @@ public class ScanningClient {
             OpcUaClient client = new OpcUaClient(config);
             try{
                 client.connect();
+                client.disconnect();
+                AccessPrivileges access = results.get(endpoint.getEndpointUrl());
+                access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
             }
             catch (Exception e){
                 logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
@@ -83,7 +89,10 @@ public class ScanningClient {
                 endpointList.add(endpoint);
             }
         } catch (Exception e) {
-            logger.info("Exception while getting endpoints: {}", e.getStackTrace());
+            logger.info("Exception while getting endpoints: {}", e.getMessage());
+        }
+        if (!endpointList.isEmpty()){
+            results.put(fullHostAddress, new AccessPrivileges());
         }
         return endpointList;
     }
