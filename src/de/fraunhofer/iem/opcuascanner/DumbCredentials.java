@@ -8,6 +8,8 @@ public class DumbCredentials {
     public DumbCredentials(){
         logins.add(new Login("username", "password"));
         logins.add(new Login("user", "password"));
+        logins.add(new Login("username", "password1"));
+        logins.add(new Login("user", "password1"));
         logins.add(new Login("username", "123456"));
         logins.add(new Login("user", "123456"));
         logins.add(new Login("username", "123456789"));
