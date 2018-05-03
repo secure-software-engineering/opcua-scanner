@@ -65,7 +65,6 @@ class NetworkUtil {
 
         SubnetUtils utils = new SubnetUtils(ownIP.getHostAddress()+"/"+cidrSuffix);
         SubnetUtils.SubnetInfo info = utils.getInfo();
-        logger.info("Total usable addresses: {}", info.getAddressCountLong());
 
         for (String otherAddress : info.getAllAddresses()) {
             logger.info("Trying to reach host {}", otherAddress);
