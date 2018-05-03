@@ -54,7 +54,11 @@ class ScanningClient {
 
         //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressible errors
 
-        // TODO report results
+        ResultReporter.reportToFile(results);
+    }
+
+    private static void reportResults() {
+
     }
 
     private static void tryToConnectWithDumbLogin(List<EndpointDescription> endpoints) {
