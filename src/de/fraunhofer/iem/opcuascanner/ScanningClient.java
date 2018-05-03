@@ -14,6 +14,9 @@ import java.util.List;
 
 public class ScanningClient {
 
+    private static final String ADDR_PREFIX = "opc.tcp://";
+    private static final String ADDR_SUFFIX = ":4840";
+
     private static final int DEFAULT_CIDR_SUFFIX = 26;
 
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
@@ -68,17 +71,19 @@ public class ScanningClient {
 
     private static List<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost) {
         List<EndpointDescription> endpointList = new ArrayList<>();
-        logger.info("Trying to get endpoints for reachable host {}", reachableHost);
-        EndpointDescription[] endpoints = new EndpointDescription[0];
+        String fullHostAddress = ADDR_PREFIX + reachableHost.getHostAddress() + ADDR_SUFFIX;
+        logger.info("Trying to get endpoints for reachable host {}", fullHostAddress);
+        EndpointDescription[] endpoints;
         try {
-            endpoints = UaTcpStackClient.getEndpoints(reachableHost.getHostAddress()).get();
+            endpoints = UaTcpStackClient.getEndpoints(fullHostAddress).get();
+
+            for (EndpointDescription endpoint : endpoints) {
+                logger.info("Endpoint {} with SecurityPolicy {} and MessageSecurityMode {}", endpoint.getEndpointUrl(),
+                        endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
+                endpointList.add(endpoint);
+            }
         } catch (Exception e) {
-            logger.info("Exception while getting endpoints {}", e.getMessage());
-        }
-        for (EndpointDescription endpoint : endpoints) {
-            logger.info("Endpoint {} with SecurityPolicy {} and MessageSecurityMode {}", endpoint.getEndpointUrl(),
-                    endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
-            endpointList.add(endpoint);
+            logger.info("Exception while getting endpoints: {}", e.getStackTrace());
         }
         return endpointList;
     }
