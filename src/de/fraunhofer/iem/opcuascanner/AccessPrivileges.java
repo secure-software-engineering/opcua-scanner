@@ -4,7 +4,7 @@ class AccessPrivileges {
     private final boolean[][] privPerAuth = new boolean[Privilege.values().length][Authentication.values().length];
     private final boolean[][] wasTested = new boolean[Privilege.values().length][Authentication.values().length];
 
-    void setPrivilegeWasTestedPerAuthentication(Privilege p, Authentication a){
+    void privilegeWasTestedPerAuthentication(Privilege p, Authentication a){
         wasTested[p.ordinal()][a.ordinal()] = true;
     }
 

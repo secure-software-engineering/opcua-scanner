@@ -10,14 +10,19 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ResultReporter {
+class ResultReporter {
     private static final String CSV_DELIMITER = ",";
-    private static final String CSV_LINE_BREAK = "\n";
+    private static final String CSV_LINE_BREAK = "\r\n";
     private static final String DEFAULT_FILENAME = "OPCUAScannerResults";
     private static final String DEFAULT_FILE_EXTENSION= ".csv";
     private static final String UNKNOWN = "unknown";
 
     private static final Logger logger = LoggerFactory.getLogger(ResultReporter.class);
+
+
+    private ResultReporter(){
+        //This class is an utility class and should not be instantiated}
+    }
 
     /**
      * Report the results to a csv file so that only given privileges are visible as "true"
@@ -43,13 +48,7 @@ public class ResultReporter {
     private static String buildCsvOutput(HashMap<String,AccessPrivileges> results) {
         StringBuilder outputBuilder = new StringBuilder();
 
-        //Make the headers for the table
-        outputBuilder.append("Server" + CSV_DELIMITER);
-        for(Authentication auth : Authentication.values()) {
-            for (Privilege priv : Privilege.values()) {
-                outputBuilder.append(auth.toString()+"_"+priv.toString());
-            }
-        }
+        makeHeaders(outputBuilder);
 
         for (Map.Entry<String, AccessPrivileges> resultForServer : results.entrySet()){
             String server = resultForServer.getKey();
@@ -59,19 +58,34 @@ public class ResultReporter {
 
             for(Authentication auth : Authentication.values()){
                 for (Privilege priv : Privilege.values()){
-                    if (privForServer.getWasTested(priv, auth)){
-                        if (privForServer.isPrivilegePerAuthentication(priv, auth)){
-                            outputBuilder.append("true");
-                        }
-                    } else{
-                        outputBuilder.append(UNKNOWN);
-                    }
-                    outputBuilder.append(CSV_DELIMITER);
-
+                    boolean wasTested = privForServer.getWasTested(priv, auth);
+                    boolean hasPrivilege = privForServer.isPrivilegePerAuthentication(priv, auth);
+                    reportPrivForServer(outputBuilder, wasTested, hasPrivilege);
                 }
             }
             outputBuilder.append(CSV_LINE_BREAK);
         }
         return outputBuilder.toString();
+    }
+
+    private static void reportPrivForServer(StringBuilder outputBuilder, boolean wasTested, boolean hasPrivilege) {
+        if (wasTested){
+            if (hasPrivilege){
+                outputBuilder.append("true");
+            }
+        } else{
+            outputBuilder.append(UNKNOWN);
+        }
+        outputBuilder.append(CSV_DELIMITER);
+    }
+
+    private static void makeHeaders(StringBuilder outputBuilder) {
+        outputBuilder.append("Server" + CSV_DELIMITER);
+        for(Authentication auth : Authentication.values()) {
+            for (Privilege priv : Privilege.values()) {
+                outputBuilder.append(auth.toString()+"_"+priv.toString() + CSV_DELIMITER);
+            }
+        }
+        outputBuilder.append(CSV_LINE_BREAK);
     }
 }

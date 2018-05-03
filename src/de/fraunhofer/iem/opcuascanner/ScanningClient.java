@@ -57,13 +57,10 @@ class ScanningClient {
         ResultReporter.reportToFile(results);
     }
 
-    private static void reportResults() {
-
-    }
-
     private static void tryToConnectWithDumbLogin(List<EndpointDescription> endpoints) {
         logger.info("Trying connections with dumb logins to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
+            AccessPrivileges access = results.get(endpoint.getEndpointUrl());
             for (Login login : DumbCredentials.logins){
                 OpcUaClientConfig config = OpcUaClientConfig.builder()
                         .setEndpoint(endpoint)
@@ -75,7 +72,6 @@ class ScanningClient {
                 try{
                     client.connect();
                     client.disconnect();
-                    AccessPrivileges access = results.get(endpoint.getEndpointUrl());
                     access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
                     logger.info("Succeed in making a connection using dumb credentials to {}", endpoint.getEndpointUrl());
                 }
@@ -83,13 +79,14 @@ class ScanningClient {
                     logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
                 }
             }
-
+            access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
         }
     }
 
     private static void tryToConnectAnonymously(List<EndpointDescription> endpoints) {
         logger.info("Trying anonymous connections to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
+            AccessPrivileges access = results.get(endpoint.getEndpointUrl());
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
                     .build();
@@ -98,13 +95,13 @@ class ScanningClient {
             try{
                 client.connect();
                 client.disconnect();
-                AccessPrivileges access = results.get(endpoint.getEndpointUrl());
                 access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
                 logger.info("Succeed in making an anonymous connection to {}", endpoint.getEndpointUrl());
             }
             catch (Exception e){
                 logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
             }
+            access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.ANONYMOUSLY);
         }
     }
 
