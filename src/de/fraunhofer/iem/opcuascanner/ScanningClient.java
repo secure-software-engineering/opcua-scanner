@@ -89,6 +89,7 @@ class ScanningClient {
                 }
             }
             access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
+            setReadAndWriteToFalseIfUnableToConnect(access, Authentication.DUMB_CREDENTIALS);
         }
     }
 
@@ -117,6 +118,7 @@ class ScanningClient {
                 client.disconnect();
             }
             access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.ANONYMOUSLY);
+            setReadAndWriteToFalseIfUnableToConnect(access, Authentication.ANONYMOUSLY);
         }
     }
 
@@ -141,7 +143,16 @@ class ScanningClient {
     }
 
     private static String getUrlWithSecurityDetail(EndpointDescription endpoint){
-        return endpoint.getEndpointUrl() + "#" + SecurityPolicy.fromUriSafe(endpoint.getSecurityPolicyUri()).get()
+        return endpoint.getEndpointUrl() + "#" + SecurityPolicy.fromUriSafe(endpoint.getSecurityPolicyUri())
                 + "#" + endpoint.getSecurityMode();
+    }
+
+    private static void setReadAndWriteToFalseIfUnableToConnect(AccessPrivileges access, Authentication authentication) {
+        if (access.isPrivilegePerAuthentication(Privilege.CONNECT, authentication)){
+            access.privilegeWasTestedPerAuthentication(Privilege.READ, authentication);
+            access.isPrivilegePerAuthentication(Privilege.READ, authentication);
+            access.privilegeWasTestedPerAuthentication(Privilege.WRITE, authentication);
+            access.isPrivilegePerAuthentication(Privilege.WRITE, authentication);
+        }
     }
 }

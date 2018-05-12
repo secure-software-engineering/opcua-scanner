@@ -17,6 +17,7 @@ class AccessPrivileges {
     }
 
     boolean isPrivilegePerAuthentication(Privilege p, Authentication a){
+        assert wasTested[p.ordinal()][a.ordinal()];
         return privPerAuth[p.ordinal()][a.ordinal()];
     }
 }
