@@ -65,7 +65,8 @@ class ScanningClient {
                 OpcUaClientConfig config = OpcUaClientConfig.builder()
                         .setEndpoint(endpoint)
                         .setIdentityProvider(new UsernameProvider(login.username, login.password))
-                        .setKeyPair(null)
+                        .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
+                        .setCertificate(CertificateUtil.getSelfSignedCertificate())
                         .build();
 
                 OpcUaClient client = new OpcUaClient(config);
@@ -89,6 +90,8 @@ class ScanningClient {
             AccessPrivileges access = results.get(endpoint.getEndpointUrl());
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
+                    .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
+                    .setCertificate(CertificateUtil.getSelfSignedCertificate())
                     .build();
 
             OpcUaClient client = new OpcUaClient(config);
