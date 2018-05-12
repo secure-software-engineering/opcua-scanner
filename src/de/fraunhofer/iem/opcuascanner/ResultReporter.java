@@ -21,12 +21,13 @@ class ResultReporter {
 
 
     private ResultReporter(){
-        //This class is an utility class and should not be instantiated}
+        //Do not instantiate this, this a util class.
+        //Private constructor hides implicit public one
     }
 
     /**
-     * Report the results to a csv file so that only given privileges are visible as "true"
-     * or unknown field as "unknown".
+     * Report the results to a csv file so that given privileges are visible as "true", tested privileges that were
+     * not given as "false" and not tested privileges as "unknown".
      * @param results The results which will be written to the file
      */
     static void reportToFile(HashMap<String, AccessPrivileges> results){
@@ -72,6 +73,8 @@ class ResultReporter {
         if (wasTested){
             if (hasPrivilege){
                 outputBuilder.append("true");
+            } else {
+                outputBuilder.append("false");
             }
         } else{
             outputBuilder.append(UNKNOWN);
