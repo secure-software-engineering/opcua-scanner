@@ -80,7 +80,7 @@ class ResultReporter {
     }
 
     private static void makeHeaders(StringBuilder outputBuilder) {
-        outputBuilder.append("Server" + CSV_DELIMITER);
+        outputBuilder.append("ENDPOINT" + CSV_DELIMITER);
         for(Authentication auth : Authentication.values()) {
             for (Privilege priv : Privilege.values()) {
                 outputBuilder.append(auth.toString()+"_"+priv.toString() + CSV_DELIMITER);

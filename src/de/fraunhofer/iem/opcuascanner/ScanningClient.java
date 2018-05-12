@@ -4,6 +4,7 @@ import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
+import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,7 @@ class ScanningClient {
     private static void tryToConnectWithDumbLogin(List<EndpointDescription> endpoints) {
         logger.info("Trying connections with dumb logins to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
-            AccessPrivileges access = results.get(endpoint.getEndpointUrl());
+            AccessPrivileges access = results.get(getUrlWithSecurityDetail(endpoint));
             for (Login login : DumbCredentials.logins){
                 OpcUaClientConfig config = OpcUaClientConfig.builder()
                         .setEndpoint(endpoint)
@@ -72,12 +73,19 @@ class ScanningClient {
                 OpcUaClient client = new OpcUaClient(config);
                 try{
                     client.connect();
-                    client.disconnect();
-                    access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
-                    logger.info("Succeed in making a connection using dumb credentials to {}", endpoint.getEndpointUrl());
+                    if (!client.getSession().isCancelled()){
+                        access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
+                        logger.info("Succeed in making a connection to {} using username \"{}\" and password \"{}\"",
+                                getUrlWithSecurityDetail(endpoint), login.username, login.password);
+                        //If we found a working login, no need to try them all.
+                        break;
+                    }
                 }
                 catch (Exception e){
                     logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
+                }
+                finally {
+                    client.disconnect();
                 }
             }
             access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
@@ -87,7 +95,7 @@ class ScanningClient {
     private static void tryToConnectAnonymously(List<EndpointDescription> endpoints) {
         logger.info("Trying anonymous connections to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
-            AccessPrivileges access = results.get(endpoint.getEndpointUrl());
+            AccessPrivileges access = results.get(getUrlWithSecurityDetail(endpoint));
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
                     .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
@@ -97,12 +105,16 @@ class ScanningClient {
             OpcUaClient client = new OpcUaClient(config);
             try{
                 client.connect();
-                client.disconnect();
-                access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
-                logger.info("Succeed in making an anonymous connection to {}", endpoint.getEndpointUrl());
+                if (!client.getSession().isCancelled()){
+                    access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
+                    logger.info("Succeed in making an anonymous connection to {}", getUrlWithSecurityDetail(endpoint));
+                }
             }
             catch (Exception e){
-                logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
+                logger.info("Could not connect to endpoint {} {}",getUrlWithSecurityDetail(endpoint), e.getMessage());
+            }
+            finally {
+                client.disconnect();
             }
             access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.ANONYMOUSLY);
         }
@@ -117,16 +129,19 @@ class ScanningClient {
             endpoints = UaTcpStackClient.getEndpoints(fullHostAddress).get();
 
             for (EndpointDescription endpoint : endpoints) {
-                logger.info("Endpoint {} with SecurityPolicy {} and MessageSecurityMode {}", endpoint.getEndpointUrl(),
-                        endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
+                logger.info("Found endpoint {} with SecurityPolicy {} and MessageSecurityMode {}",
+                        endpoint.getEndpointUrl(), endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
                 endpointList.add(endpoint);
+                results.put(getUrlWithSecurityDetail(endpoint), new AccessPrivileges());
             }
         } catch (Exception e) {
             logger.info("Exception while getting endpoints: {}", e.getMessage());
         }
-        if (!endpointList.isEmpty()){
-            results.put(fullHostAddress, new AccessPrivileges());
-        }
         return endpointList;
+    }
+
+    private static String getUrlWithSecurityDetail(EndpointDescription endpoint){
+        return endpoint.getEndpointUrl() + "#" + SecurityPolicy.fromUriSafe(endpoint.getSecurityPolicyUri()).get()
+                + "#" + endpoint.getSecurityMode();
     }
 }
