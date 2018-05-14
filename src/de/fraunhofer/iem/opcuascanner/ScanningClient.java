@@ -1,10 +1,16 @@
 package de.fraunhofer.iem.opcuascanner;
 
+import com.google.common.collect.ImmutableList;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
+import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
+import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
+import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.ServerState;
+import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +20,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 class ScanningClient {
 
@@ -72,11 +79,16 @@ class ScanningClient {
 
                 OpcUaClient client = new OpcUaClient(config);
                 try{
-                    client.connect();
+                    client.connect().get();
                     if (!client.getSession().isCancelled()){
                         access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
                         logger.info("Succeed in making a connection to {} using username \"{}\" and password \"{}\"",
                                 getUrlWithSecurityDetail(endpoint), login.username, login.password);
+                        readServerStateAndTime(client).thenAccept(values -> {
+                            logger.info("Could read from {}, State is ={}", getUrlWithSecurityDetail(endpoint),
+                                    ServerState.from((Integer) values.get(0).getValue().getValue()));
+                            access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
+                        });
                         //If we found a working login, no need to try them all.
                         break;
                     }
@@ -89,7 +101,7 @@ class ScanningClient {
                 }
             }
             access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
-            setReadAndWriteToFalseIfUnableToConnect(access, Authentication.DUMB_CREDENTIALS);
+            setOtherOperationsToTestedIfUnableToConnect(access, Authentication.DUMB_CREDENTIALS);
         }
     }
 
@@ -105,10 +117,15 @@ class ScanningClient {
 
             OpcUaClient client = new OpcUaClient(config);
             try{
-                client.connect();
+                client.connect().get();
                 if (!client.getSession().isCancelled()){
-                    access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
                     logger.info("Succeed in making an anonymous connection to {}", getUrlWithSecurityDetail(endpoint));
+                    access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
+                    readServerStateAndTime(client).thenAccept(values -> {
+                        logger.info("Could read from {}, State is ={}", getUrlWithSecurityDetail(endpoint),
+                                ServerState.from((Integer) values.get(0).getValue().getValue()));
+                        access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
+                    });
                 }
             }
             catch (Exception e){
@@ -118,7 +135,7 @@ class ScanningClient {
                 client.disconnect();
             }
             access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.ANONYMOUSLY);
-            setReadAndWriteToFalseIfUnableToConnect(access, Authentication.ANONYMOUSLY);
+            setOtherOperationsToTestedIfUnableToConnect(access, Authentication.ANONYMOUSLY);
         }
     }
 
@@ -147,12 +164,19 @@ class ScanningClient {
                 + "#" + endpoint.getSecurityMode();
     }
 
-    private static void setReadAndWriteToFalseIfUnableToConnect(AccessPrivileges access, Authentication authentication) {
-        if (access.isPrivilegePerAuthentication(Privilege.CONNECT, authentication)){
+    private static void setOtherOperationsToTestedIfUnableToConnect(AccessPrivileges access, Authentication authentication) {
+        if (!access.isPrivilegePerAuthentication(Privilege.CONNECT, authentication)){
             access.privilegeWasTestedPerAuthentication(Privilege.READ, authentication);
-            access.isPrivilegePerAuthentication(Privilege.READ, authentication);
             access.privilegeWasTestedPerAuthentication(Privilege.WRITE, authentication);
-            access.isPrivilegePerAuthentication(Privilege.WRITE, authentication);
+            access.privilegeWasTestedPerAuthentication(Privilege.DELETE, authentication);
         }
+    }
+
+    private static CompletableFuture<List<DataValue>> readServerStateAndTime(OpcUaClient client) {
+        List<NodeId> nodeIds = ImmutableList.of(
+                Identifiers.Server_ServerStatus_State,
+                Identifiers.Server_ServerStatus_CurrentTime);
+
+        return client.readValues(0.0, TimestampsToReturn.Both, nodeIds);
     }
 }
