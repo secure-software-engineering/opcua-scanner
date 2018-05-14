@@ -1,4 +1,4 @@
-package de.fraunhofer.iem.opcuascanner;
+package de.fraunhofer.iem.opcuascanner.utils;
 
 import org.apache.commons.net.util.SubnetUtils;
 import org.slf4j.Logger;
@@ -11,7 +11,7 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
 
-class NetworkUtil {
+public class NetworkUtil {
 
     private static final int OPCUA_DEFAULT_PORT = 4840;
     private static final int DEFAULT_TIMEOUT_IN_MS = 500;
@@ -22,7 +22,7 @@ class NetworkUtil {
         //private constructor since utility class should not be instantiated
     }
 
-    static List<InetAddress> getOwnIpAddresses() {
+    public static List<InetAddress> getOwnIpAddresses() {
         List<InetAddress> ownInetAddresses = new ArrayList<>();
         Enumeration<NetworkInterface> nets;
         try {
@@ -60,7 +60,7 @@ class NetworkUtil {
      * @param cidrSuffix The
      * @return A list of addresses including all hosts which could be reached
      */
-    static List<Inet4Address> getReachableHosts(InetAddress ownIP, int cidrSuffix) {
+    public static List<Inet4Address> getReachableHosts(InetAddress ownIP, int cidrSuffix) {
         List<Inet4Address> reachableHosts = new ArrayList<>();
 
         SubnetUtils utils = new SubnetUtils(ownIP.getHostAddress()+"/"+cidrSuffix);

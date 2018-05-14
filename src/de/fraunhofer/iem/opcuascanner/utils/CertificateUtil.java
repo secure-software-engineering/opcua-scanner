@@ -1,4 +1,4 @@
-package de.fraunhofer.iem.opcuascanner;
+package de.fraunhofer.iem.opcuascanner.utils;
 
 import org.eclipse.milo.opcua.stack.core.util.SelfSignedCertificateBuilder;
 import org.eclipse.milo.opcua.stack.core.util.SelfSignedCertificateGenerator;
@@ -9,7 +9,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 
-class CertificateUtil {
+public class CertificateUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(CertificateUtil.class);
 
@@ -22,7 +22,7 @@ class CertificateUtil {
     }
 
 
-    static KeyPair getOrGenerateRsaKeyPair(){
+    public static KeyPair getOrGenerateRsaKeyPair(){
         if (keyPair != null){
             return keyPair;
         } else{
@@ -35,7 +35,7 @@ class CertificateUtil {
         return keyPair;
     }
 
-    static X509Certificate getSelfSignedCertificate(){
+    public static X509Certificate getSelfSignedCertificate(){
         keyPair = getOrGenerateRsaKeyPair();
         SelfSignedCertificateBuilder builder = new SelfSignedCertificateBuilder(keyPair)
                 .setCommonName("OPC UA Scanning Client")

@@ -1,5 +1,8 @@
 package de.fraunhofer.iem.opcuascanner;
 
+import de.fraunhofer.iem.opcuascanner.logic.AccessPrivileges;
+import de.fraunhofer.iem.opcuascanner.logic.Authentication;
+import de.fraunhofer.iem.opcuascanner.logic.Privilege;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

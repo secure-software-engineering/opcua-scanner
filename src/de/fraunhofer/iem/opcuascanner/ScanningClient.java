@@ -1,6 +1,13 @@
 package de.fraunhofer.iem.opcuascanner;
 
 import com.google.common.collect.ImmutableList;
+import de.fraunhofer.iem.opcuascanner.logic.AccessPrivileges;
+import de.fraunhofer.iem.opcuascanner.logic.Authentication;
+import de.fraunhofer.iem.opcuascanner.logic.Login;
+import de.fraunhofer.iem.opcuascanner.logic.Privilege;
+import de.fraunhofer.iem.opcuascanner.utils.CertificateUtil;
+import de.fraunhofer.iem.opcuascanner.utils.CommonCredentialsUtil;
+import de.fraunhofer.iem.opcuascanner.utils.NetworkUtil;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
@@ -22,12 +29,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * This scanner detects its own ip, and scans the IPv4 range relative to that IP on the default OPC UA Port (using
+ * {@link NetworkUtil}).
+ * For all hosts that are reachable, endpoints are retrieved. For these endpoints several methods of
+ * {@link Authentication} are tried and several {@link Privilege}s are tried to obtain.
+ *
+ * The results are reported to a CSV File using the {@link ResultReporter}. This file can be opened as a table
+ * using standard office calculation programs, such as Microsoft Excel or LibreOffice Calc.
+ */
 class ScanningClient {
 
     private static final String ADDR_PREFIX = "opc.tcp://";
     private static final String ADDR_SUFFIX = ":4840";
 
-    private static final int DEFAULT_CIDR_SUFFIX = 27;
+    /**
+     * Fixed bits of the IP from start on. Used to determine the size of the subnet. The larger the suffix, the
+     * smaller the part of the subnet that will be scanned.
+     */
+    private static final int DEFAULT_CIDR_SUFFIX = 28;
 
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
 
@@ -58,8 +78,6 @@ class ScanningClient {
 
         tryToConnectWithDumbLogin(allEndpoints);
 
-        //TODO second phase: Try to read
-
         //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressible errors
 
         ResultReporter.reportToFile(results);
@@ -69,7 +87,7 @@ class ScanningClient {
         logger.info("Trying connections with dumb logins to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
             AccessPrivileges access = results.get(getUrlWithSecurityDetail(endpoint));
-            for (Login login : DumbCredentials.logins){
+            for (Login login : CommonCredentialsUtil.logins){
                 OpcUaClientConfig config = OpcUaClientConfig.builder()
                         .setEndpoint(endpoint)
                         .setIdentityProvider(new UsernameProvider(login.username, login.password))

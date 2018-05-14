@@ -1,4 +1,6 @@
-package de.fraunhofer.iem.opcuascanner;
+package de.fraunhofer.iem.opcuascanner.utils;
+
+import de.fraunhofer.iem.opcuascanner.logic.Login;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,14 +11,14 @@ import java.util.List;
  * Loosely based on most recent data from https://en.wikipedia.org/wiki/List_of_the_most_common_passwords.
  * Also includes passwords from eclipse milo examples.
  */
-class DumbCredentials {
+public class CommonCredentialsUtil {
 
-    private DumbCredentials() {
+    private CommonCredentialsUtil() {
         //Do not instantiate this, this a util class.
         //Private constructor hides implicit public one
     }
 
-    static final List<Login> logins = new ArrayList<>();
+    public static final List<Login> logins = new ArrayList<>();
     static{
         logins.add(new Login("username", "password"));
         logins.add(new Login("user", "password"));
