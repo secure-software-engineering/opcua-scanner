@@ -11,6 +11,8 @@ import java.security.cert.X509Certificate;
 
 public class CertificateUtil {
 
+    public static final String APPLICATION_URI = "urn:fraunhofer:iem:opcua:client";
+
     private static final Logger logger = LoggerFactory.getLogger(CertificateUtil.class);
 
     private static KeyPair keyPair;
@@ -44,7 +46,7 @@ public class CertificateUtil {
                 .setLocalityName("Paderborn")
                 .setStateName("NRW")
                 .setCountryCode("DE")
-                .setApplicationUri("urn:fraunhofer:iem:opcua:client")
+                .setApplicationUri(APPLICATION_URI)
                 .addDnsName("localhost");
         try{
             selfSignedCertificate = builder.build();

@@ -13,7 +13,6 @@ import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
-import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.ServerState;
@@ -93,6 +92,7 @@ class ScanningClient {
                         .setIdentityProvider(new UsernameProvider(login.username, login.password))
                         .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
                         .setCertificate(CertificateUtil.getSelfSignedCertificate())
+                        .setApplicationUri(CertificateUtil.APPLICATION_URI)
                         .build();
 
                 OpcUaClient client = new OpcUaClient(config);
@@ -112,7 +112,8 @@ class ScanningClient {
                     }
                 }
                 catch (Exception e){
-                    logger.info("Could not connect to endpoint {} {}",endpoint.getEndpointUrl(), e.getMessage());
+                    logger.debug("Could not connect to endpoint {} {}",getUrlWithSecurityDetail(endpoint),
+                            e.getMessage());
                 }
                 finally {
                     client.disconnect();
@@ -129,25 +130,21 @@ class ScanningClient {
             AccessPrivileges access = results.get(getUrlWithSecurityDetail(endpoint));
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
-                    .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
-                    .setCertificate(CertificateUtil.getSelfSignedCertificate())
                     .build();
 
             OpcUaClient client = new OpcUaClient(config);
             try{
                 client.connect().get();
-                if (!client.getSession().isCancelled()){
-                    logger.info("Succeed in making an anonymous connection to {}", getUrlWithSecurityDetail(endpoint));
-                    access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
-                    readServerStateAndTime(client).thenAccept(values -> {
-                        logger.info("Could read from {}, State is ={}", getUrlWithSecurityDetail(endpoint),
-                                ServerState.from((Integer) values.get(0).getValue().getValue()));
-                        access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
-                    });
-                }
+                logger.info("Succeed in making an anonymous connection to {}", getUrlWithSecurityDetail(endpoint));
+                access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
+                readServerStateAndTime(client).thenAccept(values -> {
+                    logger.info("Could read from {}, State is ={}", getUrlWithSecurityDetail(endpoint),
+                            ServerState.from((Integer) values.get(0).getValue().getValue()));
+                    access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
+                });
             }
             catch (Exception e){
-                logger.info("Could not connect to endpoint {} {}",getUrlWithSecurityDetail(endpoint), e.getMessage());
+                logger.debug("Could not connect to endpoint {} {}",getUrlWithSecurityDetail(endpoint), e.getMessage());
             }
             finally {
                 client.disconnect();
@@ -160,9 +157,11 @@ class ScanningClient {
     private static List<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost) {
         List<EndpointDescription> endpointList = new ArrayList<>();
         String fullHostAddress = ADDR_PREFIX + reachableHost.getHostAddress() + ADDR_SUFFIX;
-        logger.info("Trying to get endpoints for reachable host {}", fullHostAddress);
+        String fullHostAddressWithDiscovery = ADDR_PREFIX + reachableHost.getHostAddress() + "/discovery" + ADDR_SUFFIX;
         EndpointDescription[] endpoints;
         try {
+            logger.info("Trying to get endpoints for reachable host at {} or {}", fullHostAddress,
+                    fullHostAddressWithDiscovery);
             endpoints = UaTcpStackClient.getEndpoints(fullHostAddress).get();
 
             for (EndpointDescription endpoint : endpoints) {
@@ -171,15 +170,27 @@ class ScanningClient {
                 endpointList.add(endpoint);
                 results.put(getUrlWithSecurityDetail(endpoint), new AccessPrivileges());
             }
+
+            endpoints = UaTcpStackClient.getEndpoints(fullHostAddressWithDiscovery).get();
+
+            for (EndpointDescription endpoint : endpoints) {
+                logger.info("Found endpoint {} with SecurityPolicy {} and MessageSecurityMode {}",
+                        endpoint.getEndpointUrl(), endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
+                endpointList.add(endpoint);
+                results.put(getUrlWithSecurityDetail(endpoint), new AccessPrivileges());
+            }
+
+
         } catch (Exception e) {
-            logger.info("Exception while getting endpoints: {}", e.getMessage());
+            //It's okay if we do not find endpoints
         }
         return endpointList;
     }
 
     private static String getUrlWithSecurityDetail(EndpointDescription endpoint){
-        return endpoint.getEndpointUrl() + "#" + SecurityPolicy.fromUriSafe(endpoint.getSecurityPolicyUri())
-                + "#" + endpoint.getSecurityMode();
+        String securityPolicyUri = endpoint.getSecurityPolicyUri();
+        securityPolicyUri = securityPolicyUri.substring(securityPolicyUri.lastIndexOf("#"));
+        return endpoint.getEndpointUrl() + securityPolicyUri + "#" + endpoint.getSecurityMode();
     }
 
     private static void setOtherOperationsToTestedIfUnableToConnect(AccessPrivileges access, Authentication authentication) {
