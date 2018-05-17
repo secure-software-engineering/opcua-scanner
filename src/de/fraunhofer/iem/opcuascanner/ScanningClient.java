@@ -38,6 +38,19 @@ class ScanningClient {
 
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
 
+    /**
+     * If this is set to active, the client will try to write to the server. If successful, this might interfere with
+     * the data on a running server, so use carefully.
+     */
+    private static boolean writeActivated = false;
+
+    /**
+     * If this is set to active, the client will try to delete from the server. If successful, this might interfere with
+     * the data on a running server, so use carefully.
+     */
+    private static boolean deleteActivated = false;
+
+
     private static HashMap<String,AccessPrivileges> results = new HashMap<>();
 
     public static void main(String[] args) {
@@ -67,9 +80,6 @@ class ScanningClient {
             tryToConnectAnonymously(endpointDescription);
             tryToConnectWithDumbLogin(endpointDescription);
         }
-
-        //TODO test write
-
         //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressible errors
 
         ResultReporter.reportToFile(results);
@@ -88,7 +98,7 @@ class ScanningClient {
                     .build();
 
             privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
-                    Authentication.COMMON_CREDENTIALS);
+                    Authentication.COMMON_CREDENTIALS, writeActivated, deleteActivated);
             results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
         }
     }
@@ -102,7 +112,8 @@ class ScanningClient {
                 .setApplicationUri(CertificateUtil.APPLICATION_URI)
                 .build();
 
-        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges, Authentication.ANONYMOUSLY);
+        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges, Authentication.ANONYMOUSLY,
+                writeActivated, deleteActivated);
         results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
     }
 }

@@ -31,9 +31,12 @@ class PrivilegeTester {
      * @param client The client that will be connected. Endpoint to connect to is contained.
      * @param privileges The AccessPrivileges to add the results to.
      * @param auth The Authentication method which to store the results in the privileges
+     * @param writeActivated Whether the client should try to write to the server
+     * @param deleteActivated Whether the client should try to delete from the server
      * @return The updated AccessPrivileges
      */
-    static AccessPrivileges testPrivilege(OpcUaClient client, AccessPrivileges privileges, Authentication auth){
+    static AccessPrivileges testPrivilege(OpcUaClient client, AccessPrivileges privileges, Authentication auth,
+                                          boolean writeActivated, boolean deleteActivated){
         try{
             client.connect().get();
             privileges.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, auth);
@@ -45,20 +48,26 @@ class PrivilegeTester {
             //Give the client some time to read
             sleep(50);
 
-            //Now try to write
-            privileges.privilegeWasTestedPerAuthentication(Privilege.WRITE, auth);
-            List<NodeId> nodeIds = ImmutableList.of(new NodeId(2, "HelloWorld/ScalarTypes/Int32"));
-            Variant v = new Variant(0);
-            DataValue dv = new DataValue(v, null, null);
+            if (writeActivated){
+                //Now try to write
+                privileges.privilegeWasTestedPerAuthentication(Privilege.WRITE, auth);
+                List<NodeId> nodeIds = ImmutableList.of(new NodeId(2, "HelloWorld/ScalarTypes/Int32"));
+                Variant v = new Variant(0);
+                DataValue dv = new DataValue(v, null, null);
 
-            // write asynchronously....
-            CompletableFuture<List<StatusCode>> f = client.writeValues(nodeIds, ImmutableList.of(dv));
+                // write asynchronously....
+                CompletableFuture<List<StatusCode>> f = client.writeValues(nodeIds, ImmutableList.of(dv));
 
-            // ...but block for the result
-            StatusCode status = f.get().get(0);
-            if (status.isGood()) {
-                privileges.setPrivilegePerAuthenticationToTrue(Privilege.WRITE, auth);
+                // ...but block for the result
+                StatusCode status = f.get().get(0);
+                if (status.isGood()) {
+                    privileges.setPrivilegePerAuthenticationToTrue(Privilege.WRITE, auth);
+                }
             }
+            if (deleteActivated){
+                //TODO try to delete
+            }
+
 
         }
         catch (Exception e){
