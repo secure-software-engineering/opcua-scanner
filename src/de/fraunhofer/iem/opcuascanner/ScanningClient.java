@@ -77,6 +77,8 @@ class ScanningClient {
 
         tryToConnectWithDumbLogin(allEndpoints);
 
+        //TODO test write
+
         //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressible errors
 
         ResultReporter.reportToFile(results);
@@ -99,13 +101,13 @@ class ScanningClient {
                 try{
                     client.connect().get();
                     if (!client.getSession().isCancelled()){
-                        access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
+                        access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.COMMON_CREDENTIALS);
                         logger.info("Succeed in making a connection to {} using username \"{}\" and password \"{}\"",
                                 getUrlWithSecurityDetail(endpoint), login.username, login.password);
                         readServerStateAndTime(client).thenAccept(values -> {
                             logger.info("Could read from {}, State is ={}", getUrlWithSecurityDetail(endpoint),
                                     ServerState.from((Integer) values.get(0).getValue().getValue()));
-                            access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
+                            access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.COMMON_CREDENTIALS);
                         });
                         //If we found a working login, no need to try them all.
                         break;
@@ -119,8 +121,8 @@ class ScanningClient {
                     client.disconnect();
                 }
             }
-            access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.DUMB_CREDENTIALS);
-            setOtherOperationsToTestedIfUnableToConnect(access, Authentication.DUMB_CREDENTIALS);
+            access.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.COMMON_CREDENTIALS);
+            setOtherOperationsToTestedIfUnableToConnect(access, Authentication.COMMON_CREDENTIALS);
         }
     }
 
@@ -130,6 +132,9 @@ class ScanningClient {
             AccessPrivileges access = results.get(getUrlWithSecurityDetail(endpoint));
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
+                    .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
+                    .setCertificate(CertificateUtil.getSelfSignedCertificate())
+                    .setApplicationUri(CertificateUtil.APPLICATION_URI)
                     .build();
 
             OpcUaClient client = new OpcUaClient(config);
@@ -189,7 +194,7 @@ class ScanningClient {
 
     private static String getUrlWithSecurityDetail(EndpointDescription endpoint){
         String securityPolicyUri = endpoint.getSecurityPolicyUri();
-        securityPolicyUri = securityPolicyUri.substring(securityPolicyUri.lastIndexOf("#"));
+        securityPolicyUri = securityPolicyUri.substring(securityPolicyUri.lastIndexOf('#'));
         return endpoint.getEndpointUrl() + securityPolicyUri + "#" + endpoint.getSecurityMode();
     }
 
