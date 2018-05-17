@@ -23,9 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -159,37 +157,39 @@ class ScanningClient {
         }
     }
 
-    private static List<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost) {
-        List<EndpointDescription> endpointList = new ArrayList<>();
+    private static Set<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost) {
+        Set<EndpointDescription> endpointDescriptionSet = new HashSet<>();
         String fullHostAddress = ADDR_PREFIX + reachableHost.getHostAddress() + ADDR_SUFFIX;
         String fullHostAddressWithDiscovery = ADDR_PREFIX + reachableHost.getHostAddress() + "/discovery" + ADDR_SUFFIX;
         EndpointDescription[] endpoints;
         try {
-            logger.info("Trying to get endpoints for reachable host at {} or {}", fullHostAddress,
-                    fullHostAddressWithDiscovery);
+            logger.info("Trying to get endpoints for reachable host at {}", fullHostAddress);
             endpoints = UaTcpStackClient.getEndpoints(fullHostAddress).get();
 
             for (EndpointDescription endpoint : endpoints) {
                 logger.info("Found endpoint {} with SecurityPolicy {} and MessageSecurityMode {}",
                         endpoint.getEndpointUrl(), endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
-                endpointList.add(endpoint);
+                endpointDescriptionSet.add(endpoint);
                 results.put(getUrlWithSecurityDetail(endpoint), new AccessPrivileges());
             }
-
+        } catch (Exception e) {
+            //It's okay if we do not find endpoints
+        }
+        //Try for address at /discovery
+        try {
+            logger.info("Trying to get endpoints for reachable host at {}", fullHostAddressWithDiscovery);
             endpoints = UaTcpStackClient.getEndpoints(fullHostAddressWithDiscovery).get();
 
             for (EndpointDescription endpoint : endpoints) {
                 logger.info("Found endpoint {} with SecurityPolicy {} and MessageSecurityMode {}",
                         endpoint.getEndpointUrl(), endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
-                endpointList.add(endpoint);
+                endpointDescriptionSet.add(endpoint);
                 results.put(getUrlWithSecurityDetail(endpoint), new AccessPrivileges());
             }
-
-
         } catch (Exception e) {
             //It's okay if we do not find endpoints
         }
-        return endpointList;
+        return endpointDescriptionSet;
     }
 
     private static String getUrlWithSecurityDetail(EndpointDescription endpoint){
