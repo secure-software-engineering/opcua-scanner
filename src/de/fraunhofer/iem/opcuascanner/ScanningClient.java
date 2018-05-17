@@ -1,6 +1,5 @@
 package de.fraunhofer.iem.opcuascanner;
 
-import com.google.common.collect.ImmutableList;
 import de.fraunhofer.iem.opcuascanner.logic.AccessPrivileges;
 import de.fraunhofer.iem.opcuascanner.logic.Authentication;
 import de.fraunhofer.iem.opcuascanner.logic.Login;
@@ -8,15 +7,11 @@ import de.fraunhofer.iem.opcuascanner.logic.Privilege;
 import de.fraunhofer.iem.opcuascanner.utils.CertificateUtil;
 import de.fraunhofer.iem.opcuascanner.utils.CommonCredentialsUtil;
 import de.fraunhofer.iem.opcuascanner.utils.NetworkUtil;
+import de.fraunhofer.iem.opcuascanner.utils.OpcuaUtil;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
-import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
-import org.eclipse.milo.opcua.stack.core.Identifiers;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.ServerState;
-import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +19,8 @@ import org.slf4j.LoggerFactory;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
+
+import static java.lang.Thread.sleep;
 
 /**
  * This scanner detects its own ip, and scans the IPv4 range relative to that IP on the default OPC UA Port (using
@@ -36,9 +32,6 @@ import java.util.concurrent.CompletableFuture;
  * using standard office calculation programs, such as Microsoft Excel or LibreOffice Calc.
  */
 class ScanningClient {
-
-    private static final String ADDR_PREFIX = "opc.tcp://";
-    private static final String ADDR_SUFFIX = ":4840";
 
     /**
      * Fixed bits of the IP from start on. Used to determine the size of the subnet. The larger the suffix, the
@@ -68,7 +61,11 @@ class ScanningClient {
 
         List<EndpointDescription> allEndpoints = new ArrayList<>();
         for (Inet4Address reachableHost : reachableHosts) {
-            allEndpoints.addAll(tryToGetEndpoints(reachableHost));
+            allEndpoints.addAll(OpcuaUtil.tryToGetEndpoints(reachableHost));
+        }
+
+        for (EndpointDescription endpointDescription : allEndpoints){
+            results.put(OpcuaUtil.getUrlWithSecurityDetail(endpointDescription), new AccessPrivileges());
         }
 
         tryToConnectAnonymously(allEndpoints);
@@ -85,7 +82,7 @@ class ScanningClient {
     private static void tryToConnectWithDumbLogin(List<EndpointDescription> endpoints) {
         logger.info("Trying connections with dumb logins to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
-            AccessPrivileges access = results.get(getUrlWithSecurityDetail(endpoint));
+            AccessPrivileges access = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
             for (Login login : CommonCredentialsUtil.logins){
                 OpcUaClientConfig config = OpcUaClientConfig.builder()
                         .setEndpoint(endpoint)
@@ -101,18 +98,22 @@ class ScanningClient {
                     if (!client.getSession().isCancelled()){
                         access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.COMMON_CREDENTIALS);
                         logger.info("Succeed in making a connection to {} using username \"{}\" and password \"{}\"",
-                                getUrlWithSecurityDetail(endpoint), login.username, login.password);
-                        readServerStateAndTime(client).thenAccept(values -> {
-                            logger.info("Could read from {}, State is ={}", getUrlWithSecurityDetail(endpoint),
+                                OpcuaUtil.getUrlWithSecurityDetail(endpoint), login.username, login.password);
+                        //Now try to read
+                        access.privilegeWasTestedPerAuthentication(Privilege.READ, Authentication.COMMON_CREDENTIALS);
+                        OpcuaUtil.readServerStateAndTime(client).thenAccept(values -> {
+                            logger.info("Could read from {}, State is = {}", OpcuaUtil.getUrlWithSecurityDetail(endpoint),
                                     ServerState.from((Integer) values.get(0).getValue().getValue()));
                             access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.COMMON_CREDENTIALS);
                         });
+                        //Give the client some time to read
+                        sleep(50);
                         //If we found a working login, no need to try them all.
                         break;
                     }
                 }
                 catch (Exception e){
-                    logger.debug("Could not connect to endpoint {} {}",getUrlWithSecurityDetail(endpoint),
+                    logger.debug("Could not connect to endpoint {} {}", OpcuaUtil.getUrlWithSecurityDetail(endpoint),
                             e.getMessage());
                 }
                 finally {
@@ -127,7 +128,8 @@ class ScanningClient {
     private static void tryToConnectAnonymously(List<EndpointDescription> endpoints) {
         logger.info("Trying anonymous connections to all endpoints.");
         for (EndpointDescription endpoint : endpoints){
-            AccessPrivileges access = results.get(getUrlWithSecurityDetail(endpoint));
+            String urlWithSecurityDetail = OpcuaUtil.getUrlWithSecurityDetail(endpoint);
+            AccessPrivileges access = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
                     .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
@@ -138,16 +140,20 @@ class ScanningClient {
             OpcUaClient client = new OpcUaClient(config);
             try{
                 client.connect().get();
-                logger.info("Succeed in making an anonymous connection to {}", getUrlWithSecurityDetail(endpoint));
+                logger.info("Succeed in making an anonymous connection to {}", urlWithSecurityDetail);
                 access.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, Authentication.ANONYMOUSLY);
-                readServerStateAndTime(client).thenAccept(values -> {
-                    logger.info("Could read from {}, State is ={}", getUrlWithSecurityDetail(endpoint),
+                //Now try to read
+                access.privilegeWasTestedPerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
+                OpcuaUtil.readServerStateAndTime(client).thenAccept(values -> {
+                    logger.info("Could read from {}, State is ={}", urlWithSecurityDetail,
                             ServerState.from((Integer) values.get(0).getValue().getValue()));
                     access.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
                 });
+                //Give the client some time to read
+                sleep(50);
             }
             catch (Exception e){
-                logger.debug("Could not connect to endpoint {} {}",getUrlWithSecurityDetail(endpoint), e.getMessage());
+                logger.debug("Could not connect to endpoint {} {}", urlWithSecurityDetail, e.getMessage());
             }
             finally {
                 client.disconnect();
@@ -157,60 +163,11 @@ class ScanningClient {
         }
     }
 
-    private static Set<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost) {
-        Set<EndpointDescription> endpointDescriptionSet = new HashSet<>();
-        String fullHostAddress = ADDR_PREFIX + reachableHost.getHostAddress() + ADDR_SUFFIX;
-        String fullHostAddressWithDiscovery = ADDR_PREFIX + reachableHost.getHostAddress() + "/discovery" + ADDR_SUFFIX;
-        EndpointDescription[] endpoints;
-        try {
-            logger.info("Trying to get endpoints for reachable host at {}", fullHostAddress);
-            endpoints = UaTcpStackClient.getEndpoints(fullHostAddress).get();
-
-            for (EndpointDescription endpoint : endpoints) {
-                logger.info("Found endpoint {} with SecurityPolicy {} and MessageSecurityMode {}",
-                        endpoint.getEndpointUrl(), endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
-                endpointDescriptionSet.add(endpoint);
-                results.put(getUrlWithSecurityDetail(endpoint), new AccessPrivileges());
-            }
-        } catch (Exception e) {
-            //It's okay if we do not find endpoints
-        }
-        //Try for address at /discovery
-        try {
-            logger.info("Trying to get endpoints for reachable host at {}", fullHostAddressWithDiscovery);
-            endpoints = UaTcpStackClient.getEndpoints(fullHostAddressWithDiscovery).get();
-
-            for (EndpointDescription endpoint : endpoints) {
-                logger.info("Found endpoint {} with SecurityPolicy {} and MessageSecurityMode {}",
-                        endpoint.getEndpointUrl(), endpoint.getSecurityPolicyUri(), endpoint.getSecurityMode());
-                endpointDescriptionSet.add(endpoint);
-                results.put(getUrlWithSecurityDetail(endpoint), new AccessPrivileges());
-            }
-        } catch (Exception e) {
-            //It's okay if we do not find endpoints
-        }
-        return endpointDescriptionSet;
-    }
-
-    private static String getUrlWithSecurityDetail(EndpointDescription endpoint){
-        String securityPolicyUri = endpoint.getSecurityPolicyUri();
-        securityPolicyUri = securityPolicyUri.substring(securityPolicyUri.lastIndexOf('#'));
-        return endpoint.getEndpointUrl() + securityPolicyUri + "#" + endpoint.getSecurityMode();
-    }
-
     private static void setOtherOperationsToTestedIfUnableToConnect(AccessPrivileges access, Authentication authentication) {
         if (!access.isPrivilegePerAuthentication(Privilege.CONNECT, authentication)){
             access.privilegeWasTestedPerAuthentication(Privilege.READ, authentication);
             access.privilegeWasTestedPerAuthentication(Privilege.WRITE, authentication);
             access.privilegeWasTestedPerAuthentication(Privilege.DELETE, authentication);
         }
-    }
-
-    private static CompletableFuture<List<DataValue>> readServerStateAndTime(OpcUaClient client) {
-        List<NodeId> nodeIds = ImmutableList.of(
-                Identifiers.Server_ServerStatus_State,
-                Identifiers.Server_ServerStatus_CurrentTime);
-
-        return client.readValues(0.0, TimestampsToReturn.Both, nodeIds);
     }
 }
