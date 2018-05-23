@@ -1,4 +1,6 @@
 # OPC UA Scanner
+[![Build status](https://api.travis-ci.org/mbruns42/opcua-scanner.svg?branch=master)](https://travis-ci.org/mbruns42/opcua-scanner)
+
 An opcua client scanning for servers in a network. The OPC UA
 implementation used for this scanner is
 [Eclipse Milo](https://github.com/eclipse/milo).
