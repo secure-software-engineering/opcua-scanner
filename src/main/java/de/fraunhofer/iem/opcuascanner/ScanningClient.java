@@ -78,7 +78,7 @@ class ScanningClient {
         for (Login login : CommonCredentialsUtil.logins) {
             OpcUaClientConfig config = OpcUaClientConfig.builder()
                     .setEndpoint(endpoint)
-                    .setIdentityProvider(new UsernameProvider(login.username, login.password))
+                    .setIdentityProvider(new UsernameProvider(login.getUsername(), login.getPassword()))
                     .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
                     .setCertificate(CertificateUtil.getSelfSignedCertificate())
                     .setApplicationUri(CertificateUtil.APPLICATION_URI)
