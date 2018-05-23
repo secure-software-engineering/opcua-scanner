@@ -1,5 +1,6 @@
 package de.fraunhofer.iem.opcuascanner.utils;
 
+import de.fraunhofer.iem.opcuascanner.Configuration;
 import org.apache.commons.net.util.SubnetUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,7 +14,6 @@ import java.util.List;
 
 public class NetworkUtil {
 
-    private static final int OPCUA_DEFAULT_PORT = 4840;
     private static final int DEFAULT_TIMEOUT_IN_MS = 500;
 
     private static final Logger logger = LoggerFactory.getLogger(NetworkUtil.class);
@@ -57,19 +57,18 @@ public class NetworkUtil {
      * The runtime of the scan will change accordingly.
      *
      * @param ownIP      The IP of this host
-     * @param cidrSuffix The
      * @return A list of addresses including all hosts which could be reached
      */
-    public static List<Inet4Address> getReachableHosts(InetAddress ownIP, int cidrSuffix) {
+    public static List<Inet4Address> getReachableHosts(InetAddress ownIP) {
         List<Inet4Address> reachableHosts = new ArrayList<>();
 
-        SubnetUtils utils = new SubnetUtils(ownIP.getHostAddress()+"/"+cidrSuffix);
+        SubnetUtils utils = new SubnetUtils(ownIP.getHostAddress()+"/"+ Configuration.getCidrSuffix());
         SubnetUtils.SubnetInfo info = utils.getInfo();
 
         for (String otherAddress : info.getAllAddresses()) {
             logger.info("Trying to reach host {}", otherAddress);
             try {
-                if (isPortOpen(otherAddress, OPCUA_DEFAULT_PORT)) {
+                if (isPortOpen(otherAddress, Configuration.getPort())) {
                     reachableHosts.add((Inet4Address) InetAddress.getByName(otherAddress));
                 }
             } catch (IOException e) {

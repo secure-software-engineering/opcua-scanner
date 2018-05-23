@@ -1,0 +1,21 @@
+# Config file for the OPC UA Scanner
+
+# Comments can be made starting with '#'
+
+# Whether the client should try write to the server
+# Beware of the potential consequences for running servers
+writeActivated = false
+
+# Whether the client should try write to the server
+# Beware of the potential consequences for running servers
+deleteActivated = false
+
+# Fixed bits of the IP from start on. Used to determine the size of the subnet.
+# The larger the suffix, the smaller the part of the subnet that will be scanned.
+cidrSuffix = 28
+
+# The used port for testing tcp connections and accessing servers
+port = 4840
+
+# File name of the csv file to export the results to
+outputFileName = OPCUAScannerResults

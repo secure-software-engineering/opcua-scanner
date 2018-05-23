@@ -14,10 +14,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 class ResultReporter {
-    private static final String CSV_DELIMITER = ",";
+    public static final String CSV_DELIMITER = ",";
     private static final String CSV_LINE_BREAK = "\r\n";
-    private static final String DEFAULT_FILENAME = "OPCUAScannerResults";
-    private static final String DEFAULT_FILE_EXTENSION= ".csv";
+    public static final String DEFAULT_FILE_EXTENSION= ".csv";
     private static final String UNKNOWN = "unknown";
 
     private static final Logger logger = LoggerFactory.getLogger(ResultReporter.class);
@@ -36,7 +35,7 @@ class ResultReporter {
     static void reportToFile(HashMap<String, AccessPrivileges> results){
         String csvOutput = buildCsvOutput(results);
 
-        File outputFile = new File(DEFAULT_FILENAME + DEFAULT_FILE_EXTENSION);
+        File outputFile = new File(Configuration.getOutputFileName() + DEFAULT_FILE_EXTENSION);
 
         try(FileOutputStream output = new FileOutputStream(outputFile)){
             output.write(csvOutput.getBytes());
@@ -63,7 +62,10 @@ class ResultReporter {
             for(Authentication auth : Authentication.values()){
                 for (Privilege priv : Privilege.values()){
                     boolean wasTested = privForServer.getWasTested(priv, auth);
-                    boolean hasPrivilege = privForServer.isPrivilegePerAuthentication(priv, auth);
+                    boolean hasPrivilege = false;
+                    if (wasTested){
+                        hasPrivilege = privForServer.isPrivilegePerAuthentication(priv, auth);
+                    }
                     reportPrivForServer(outputBuilder, wasTested, hasPrivilege);
                 }
             }

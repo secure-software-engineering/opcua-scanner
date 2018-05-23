@@ -15,6 +15,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.*;
@@ -30,31 +31,17 @@ import java.util.*;
  */
 class ScanningClient {
 
-    /**
-     * Fixed bits of the IP from start on. Used to determine the size of the subnet. The larger the suffix, the
-     * smaller the part of the subnet that will be scanned.
-     */
-    private static final int DEFAULT_CIDR_SUFFIX = 28;
-
     private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
-
-    /**
-     * If this is set to active, the client will try to write to the server. If successful, this might interfere with
-     * the data on a running server, so use carefully.
-     */
-    private static boolean writeActivated = false;
-
-    /**
-     * If this is set to active, the client will try to delete from the server. If successful, this might interfere with
-     * the data on a running server, so use carefully.
-     */
-    private static boolean deleteActivated = false;
-
 
     private static HashMap<String,AccessPrivileges> results = new HashMap<>();
 
     public static void main(String[] args) {
         logger.info("Scanner started");
+
+        if (args.length > 0){
+            File configFile = new File(args[0]);
+            Configuration.tryToLoadConfigFile(configFile);
+        }
 
         List<InetAddress> ownIps = NetworkUtil.getOwnIpAddresses();
         for (InetAddress ownIp : ownIps) {
@@ -64,7 +51,7 @@ class ScanningClient {
         List<Inet4Address> reachableHosts = new ArrayList<>();
         for (InetAddress ownIp : ownIps) {
             if (ownIp instanceof Inet4Address) {
-                List<Inet4Address> reachableHostsForIp = NetworkUtil.getReachableHosts(ownIp, DEFAULT_CIDR_SUFFIX);
+                List<Inet4Address> reachableHostsForIp = NetworkUtil.getReachableHosts(ownIp);
                 reachableHosts.addAll(reachableHostsForIp);
             }
         }
@@ -98,7 +85,7 @@ class ScanningClient {
                     .build();
 
             privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
-                    Authentication.COMMON_CREDENTIALS, writeActivated, deleteActivated);
+                    Authentication.COMMON_CREDENTIALS);
             results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
         }
     }
@@ -112,8 +99,7 @@ class ScanningClient {
                 .setApplicationUri(CertificateUtil.APPLICATION_URI)
                 .build();
 
-        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges, Authentication.ANONYMOUSLY,
-                writeActivated, deleteActivated);
+        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges, Authentication.ANONYMOUSLY);
         results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
     }
 }

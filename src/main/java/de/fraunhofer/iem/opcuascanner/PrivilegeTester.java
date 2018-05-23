@@ -31,12 +31,9 @@ class PrivilegeTester {
      * @param client The client that will be connected. Endpoint to connect to is contained.
      * @param privileges The AccessPrivileges to add the results to.
      * @param auth The Authentication method which to store the results in the privileges
-     * @param writeActivated Whether the client should try to write to the server
-     * @param deleteActivated Whether the client should try to delete from the server
      * @return The updated AccessPrivileges
      */
-    static AccessPrivileges testPrivilege(OpcUaClient client, AccessPrivileges privileges, Authentication auth,
-                                          boolean writeActivated, boolean deleteActivated){
+    static AccessPrivileges testPrivilege(OpcUaClient client, AccessPrivileges privileges, Authentication auth){
         try{
             client.connect().get();
             privileges.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, auth);
@@ -48,7 +45,7 @@ class PrivilegeTester {
             //Give the client some time to read
             sleep(50);
 
-            if (writeActivated){
+            if (Configuration.isWriteActivated()){
                 //Now try to write
                 privileges.privilegeWasTestedPerAuthentication(Privilege.WRITE, auth);
                 List<NodeId> nodeIds = ImmutableList.of(new NodeId(2, "HelloWorld/ScalarTypes/Int32"));
@@ -64,7 +61,7 @@ class PrivilegeTester {
                     privileges.setPrivilegePerAuthenticationToTrue(Privilege.WRITE, auth);
                 }
             }
-            if (deleteActivated){
+            if (Configuration.isDeleteActivated()){
                 //TODO try to delete
             }
 
