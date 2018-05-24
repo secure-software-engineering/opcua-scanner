@@ -14,9 +14,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseDirection;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseResultMask;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
-import org.eclipse.milo.opcua.stack.core.types.structured.BrowseDescription;
-import org.eclipse.milo.opcua.stack.core.types.structured.BrowseResult;
-import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
+import org.eclipse.milo.opcua.stack.core.types.structured.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +59,7 @@ class PrivilegeTester {
 
             //Now browse the servers information model
             browseNode("", client, Identifiers.RootFolder);
-            //TODO figure out whether theres any privilege to set here
+            //TODO figure out whether there's any privilege to set here
 
             if (Configuration.isWriteActivated()){
                 //Now try to write
@@ -80,13 +78,28 @@ class PrivilegeTester {
                 }
             }
             if (Configuration.isDeleteActivated()){
-                //TODO try to delete
+                //Now try to delete the same thing we wrote
+                privileges.privilegeWasTestedPerAuthentication(Privilege.DELETE, auth);
+                NodeId nodeId = new NodeId(2, "HelloWorld/ScalarTypes/Int32");
+                DeleteNodesItem deleteNodesItem = new DeleteNodesItem(nodeId, true);
+                List<DeleteNodesItem> deleteNodesItems = ImmutableList.of(deleteNodesItem);
+
+                // delete asynchronously....
+                CompletableFuture<DeleteNodesResponse> f = client.deleteNodes(deleteNodesItems);
+
+                // ...but block for the result
+                DeleteNodesResponse response= f.get();
+                StatusCode[] results = response.getResults();
+                if (results != null && results.length >0 && results[0].isGood()) {
+                    privileges.setPrivilegePerAuthenticationToTrue(Privilege.DELETE, auth);
+                }
             }
 
 
         }
         catch (Exception e){
             //If we can't connect that's fine
+            logger.debug("Exception while trying privileges: ", e.getMessage());
         }
         finally {
             client.disconnect();
