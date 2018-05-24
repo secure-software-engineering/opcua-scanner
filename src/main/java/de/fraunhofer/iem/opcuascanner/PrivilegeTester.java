@@ -94,7 +94,7 @@ class PrivilegeTester {
                     privileges.setPrivilegePerAuthenticationToTrue(Privilege.DELETE, auth);
                 }
             }
-
+            //TODO check call
 
         }
         catch (Exception e){
