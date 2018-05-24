@@ -49,5 +49,6 @@ public class PrivilegeTesterTest {
         }
     }
 
+    //TODO Test remaining functions
 
 }
