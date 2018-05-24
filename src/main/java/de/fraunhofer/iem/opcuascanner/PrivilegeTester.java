@@ -109,7 +109,7 @@ class PrivilegeTester {
         return  privileges;
     }
 
-    private static void setOtherPrivilegesToTestedIfUnableToConnect(AccessPrivileges access, Authentication auth) {
+    static void setOtherPrivilegesToTestedIfUnableToConnect(AccessPrivileges access, Authentication auth) {
         if (access.getWasTested(Privilege.CONNECT, auth) &&
                 !access.isPrivilegePerAuthentication(Privilege.CONNECT, auth)){
             for (Privilege privilege : Privilege.values()){
