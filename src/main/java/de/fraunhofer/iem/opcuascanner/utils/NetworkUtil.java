@@ -7,10 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
+import java.util.*;
 
 public class NetworkUtil {
 
@@ -46,33 +43,40 @@ public class NetworkUtil {
                 ownInetAddresses.addAll(Collections.list(inetAddresses));
             }
         }
+        for (InetAddress inetAddress : ownInetAddresses){
+            logger.info("Own inet address: " + inetAddress.getHostAddress());
+        }
         return ownInetAddresses;
     }
 
     /**
      * Scans a subnet for reachable hosts depending on the ip and the cidrSuffix, which signifies unchanged bits from
-     * the start of the ip address.
+     * the start of the ip address. Only works for IPv4 addresses.
      * For example, 131.234.44.70/24 will scan hosts whose ip address starts with 131.234.44., so 256 hosts.
      * Accordingly, 131.234.44.70/16 will scan hosts whose ip address starts with 131.234., so 256*256.
      * The runtime of the scan will change accordingly.
      *
-     * @param ownIP      The IP of this host
      * @return A list of addresses including all hosts which could be reached
      */
-    public static List<Inet4Address> getReachableHosts(InetAddress ownIP) {
-        List<Inet4Address> reachableHosts = new ArrayList<>();
+    public static Set<Inet4Address> getReachableHosts() {
+        Set<Inet4Address> reachableHosts = new HashSet<>();
+        //If there are ip addresses configured use these, else scan relative to your own
+        List<InetAddress> addressesToTry = !Configuration.getIpAddresses().isEmpty() ? Configuration.getIpAddresses() : getOwnIpAddresses();
+        for (InetAddress inetAddress : addressesToTry) {
+            if (inetAddress instanceof Inet4Address) {
+                SubnetUtils utils = new SubnetUtils(inetAddress.getHostAddress() + "/" + Configuration.getCidrSuffix());
+                SubnetUtils.SubnetInfo info = utils.getInfo();
 
-        SubnetUtils utils = new SubnetUtils(ownIP.getHostAddress()+"/"+ Configuration.getCidrSuffix());
-        SubnetUtils.SubnetInfo info = utils.getInfo();
-
-        for (String otherAddress : info.getAllAddresses()) {
-            logger.info("Trying to reach host {}", otherAddress);
-            try {
-                if (isPortOpen(otherAddress, Configuration.getPort())) {
-                    reachableHosts.add((Inet4Address) InetAddress.getByName(otherAddress));
+                for (String otherAddress : info.getAllAddresses()) {
+                    logger.info("Trying to reach host {}", otherAddress);
+                    try {
+                        if (isPortOpen(otherAddress, Configuration.getPort())) {
+                            reachableHosts.add((Inet4Address) InetAddress.getByName(otherAddress));
+                        }
+                    } catch (IOException e) {
+                        logger.debug(e.getMessage());
+                    }
                 }
-            } catch (IOException e) {
-                logger.debug(e.getMessage());
             }
         }
         return reachableHosts;

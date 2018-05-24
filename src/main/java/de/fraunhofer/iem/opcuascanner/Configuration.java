@@ -4,6 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Configuration {
 
@@ -40,12 +44,19 @@ public class Configuration {
     private static String outputFileName = "OPCUAScannerResults";
     private static final String OUTPUT_FILE_SETTING = "outputFileName";
 
+    /**
+     * IP Address to which to apply the cidr suffix and scan. If these are empty {@link de.fraunhofer.iem.opcuascanner.utils.NetworkUtil}
+     * will use the own ip addresses it detects instead
+     */
+    private static List<InetAddress> ipAddresses = new ArrayList<>();
+    private static final String IP_ADDRESS_SETTING = "ipAddresses";
+
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
 
     public static void tryToLoadConfigFile(File file) {
         try(    FileReader fileReader = new FileReader(file);
                 BufferedReader reader = new BufferedReader(fileReader)){
-            logger.info("Configuration file found at path: " + file.getAbsolutePath());
+            logger.info("Configuration file found at path: {}", file.getAbsolutePath());
 
             String line = reader.readLine();
             while (line != null){
@@ -55,17 +66,16 @@ public class Configuration {
                 line = reader.readLine();
             }
         } catch (FileNotFoundException e) {
-            logger.info("Configuration file not found at path: ", file.getAbsolutePath());
+            logger.info("Configuration file not found at path: {}", file.getAbsolutePath());
         } catch (IOException e) {
-            logger.info("Exception occurred while reading the config file. ", e.getMessage());
+            logger.info("Exception occurred while reading the config file. {}", e.getMessage());
         }
     }
 
-    //TODO make ip address configurable
     private static void processSetting(String setting){
         String[] settings = setting.split("=");
         if (settings.length < 2){
-            logger.info("Could not parse the setting: ", setting);
+            logger.info("Could not parse the setting: {}", setting);
             return;
         }
         switch(settings[0].trim()){
@@ -73,33 +83,52 @@ public class Configuration {
                 if ("true".equals(settings[1].trim())){
                     deleteActivated=true;
                 }
+                logger.info("Found deleteActivated in config: {}", deleteActivated);
                 break;
             case WRITE_ACTIVATED_SETTING:
                 if ("true".equals(settings[1].trim())){
                     writeActivated=true;
                 }
+                logger.info("Found writeActivated in config: {}", writeActivated);
                 break;
             case CIDR_SUFFIX_SETTING:
                 try{
                     int newSuffix = Integer.parseInt(settings[1].trim());
                     cidrSuffix = newSuffix;
+                    logger.info("Found cidrSuffix in config: {}", cidrSuffix);
                 } catch (NumberFormatException n){
-                    logger.info("Could not read integer value: ", setting);
+                    logger.info("Could not read integer value: {}", setting);
                 }
                 break;
             case PORT_SETTING:
                 try{
                     int newPort = Integer.parseInt(settings[1].trim());
                     port = newPort;
+                    logger.info("Found port in config: {}", port);
                 } catch (NumberFormatException n){
-                    logger.info("Could not read integer value: ", setting);
+                    logger.info("Could not read integer value: {}", setting);
                 }
                 break;
             case OUTPUT_FILE_SETTING:
                 outputFileName = settings[1].trim();
+                logger.info("Found outputFileName in config: {}", outputFileName);
+                break;
+            case IP_ADDRESS_SETTING:
+                String[] addresses = settings[1].trim().split(",");
+                for (String potentialAddress : addresses){
+                    try{
+                        InetAddress address = InetAddress.getByName(potentialAddress.trim());
+                        if (address != null){
+                            ipAddresses.add(address);
+                            logger.info("Found ip address in config: {}", potentialAddress);
+                        }
+                    } catch (UnknownHostException e) {
+                        logger.info("Could not parse ip address: {}", potentialAddress);
+                    }
+                }
                 break;
             default:
-                logger.info("Could not read setting: ", setting);
+                logger.info("Could not read setting: {}", setting);
         }
     }
 
@@ -125,5 +154,9 @@ public class Configuration {
 
     public static int getCidrSuffix() {
         return cidrSuffix;
+    }
+
+    public static List<InetAddress> getIpAddresses(){
+        return ipAddresses;
     }
 }

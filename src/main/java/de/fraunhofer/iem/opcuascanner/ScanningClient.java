@@ -43,20 +43,9 @@ class ScanningClient {
             Configuration.tryToLoadConfigFile(configFile);
         }
 
-        List<InetAddress> ownIps = NetworkUtil.getOwnIpAddresses();
-        for (InetAddress ownIp : ownIps) {
-            logger.info("Own ip: {}", ownIp);
-        }
+        Set<Inet4Address> reachableHosts =  NetworkUtil.getReachableHosts();
 
-        List<Inet4Address> reachableHosts = new ArrayList<>();
-        for (InetAddress ownIp : ownIps) {
-            if (ownIp instanceof Inet4Address) {
-                List<Inet4Address> reachableHostsForIp = NetworkUtil.getReachableHosts(ownIp);
-                reachableHosts.addAll(reachableHostsForIp);
-            }
-        }
-
-        List<EndpointDescription> allEndpoints = new ArrayList<>();
+        Set<EndpointDescription> allEndpoints = new HashSet<>();
         for (Inet4Address reachableHost : reachableHosts) {
             allEndpoints.addAll(OpcuaUtil.tryToGetEndpoints(reachableHost));
         }
