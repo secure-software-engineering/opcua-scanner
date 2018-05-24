@@ -105,15 +105,16 @@ class PrivilegeTester {
             client.disconnect();
         }
         privileges.privilegeWasTestedPerAuthentication(Privilege.CONNECT, auth);
-        setOtherOperationsToTestedIfUnableToConnect(privileges, auth);
+        setOtherPrivilegesToTestedIfUnableToConnect(privileges, auth);
         return  privileges;
     }
 
-    private static void setOtherOperationsToTestedIfUnableToConnect(AccessPrivileges access, Authentication auth) {
-        if (!access.isPrivilegePerAuthentication(Privilege.CONNECT, auth)){
-            access.privilegeWasTestedPerAuthentication(Privilege.READ, auth);
-            access.privilegeWasTestedPerAuthentication(Privilege.WRITE, auth);
-            access.privilegeWasTestedPerAuthentication(Privilege.DELETE, auth);
+    private static void setOtherPrivilegesToTestedIfUnableToConnect(AccessPrivileges access, Authentication auth) {
+        if (access.getWasTested(Privilege.CONNECT, auth) &&
+                !access.isPrivilegePerAuthentication(Privilege.CONNECT, auth)){
+            for (Privilege privilege : Privilege.values()){
+                access.privilegeWasTestedPerAuthentication(privilege, auth);
+            }
         }
     }
 
