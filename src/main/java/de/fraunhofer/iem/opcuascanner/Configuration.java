@@ -96,7 +96,7 @@ public class Configuration {
                 }
                 break;
             case OUTPUT_FILE_SETTING:
-                outputFileName = settings[1];
+                outputFileName = settings[1].trim();
                 break;
         }
     }
