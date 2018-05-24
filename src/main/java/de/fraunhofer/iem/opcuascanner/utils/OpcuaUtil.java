@@ -11,7 +11,7 @@ import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -21,8 +21,9 @@ public class OpcuaUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(OpcuaUtil.class);
 
-    private static final String ADDR_PREFIX = "opc.tcp://";
-    private static final String ADDR_SUFFIX = ":4840";
+    static final String ADDR_PREFIX = "opc.tcp://";
+    static final String ADDR_SUFFIX = ":4840";
+    static final String DISCOVERY_SUFFIX = "/discovery";
 
     private OpcuaUtil(){
         //Do not instantiate this, this a util class.
@@ -43,10 +44,10 @@ public class OpcuaUtil {
         return endpoint.getEndpointUrl() + securityPolicyUri + "#" + endpoint.getSecurityMode();
     }
 
-    public static Set<EndpointDescription> tryToGetEndpoints(Inet4Address reachableHost) {
+    public static Set<EndpointDescription> tryToGetEndpoints(InetAddress reachableHost) {
         Set<EndpointDescription> endpointDescriptionSet = new HashSet<>();
         String fullHostAddress = ADDR_PREFIX + reachableHost.getHostAddress() + ADDR_SUFFIX;
-        String fullHostAddressWithDiscovery = ADDR_PREFIX + reachableHost.getHostAddress() + "/discovery" + ADDR_SUFFIX;
+        String fullHostAddressWithDiscovery = ADDR_PREFIX + reachableHost.getHostAddress() + DISCOVERY_SUFFIX + ADDR_SUFFIX;
         EndpointDescription[] endpoints;
         try {
             logger.info("Trying to get endpoints for reachable host at {}", fullHostAddress);
