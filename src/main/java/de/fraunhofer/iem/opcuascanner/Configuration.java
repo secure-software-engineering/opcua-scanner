@@ -98,6 +98,8 @@ public class Configuration {
             case OUTPUT_FILE_SETTING:
                 outputFileName = settings[1].trim();
                 break;
+            default:
+                logger.info("Could not read setting: ", setting);
         }
     }
 
