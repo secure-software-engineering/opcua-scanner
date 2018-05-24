@@ -61,6 +61,7 @@ public class Configuration {
         }
     }
 
+    //TODO make ip address configurable
     private static void processSetting(String setting){
         String[] settings = setting.split("=");
         if (settings.length < 2){

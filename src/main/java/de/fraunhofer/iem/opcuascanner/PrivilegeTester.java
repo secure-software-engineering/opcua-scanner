@@ -126,6 +126,7 @@ class PrivilegeTester {
      * @param browseRoot The id of the node to browse
      */
     private static void browseNode(String indent, OpcUaClient client, NodeId browseRoot) {
+        //TODO output to XML file
         BrowseDescription browse = new BrowseDescription(
                 browseRoot,
                 BrowseDirection.Forward,
