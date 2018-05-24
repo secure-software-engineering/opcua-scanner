@@ -61,6 +61,7 @@ class PrivilegeTester {
                     privileges.setPrivilegePerAuthenticationToTrue(Privilege.WRITE, auth);
                 }
             }
+            //TODO test browse here
             if (Configuration.isDeleteActivated()){
                 //TODO try to delete
             }
