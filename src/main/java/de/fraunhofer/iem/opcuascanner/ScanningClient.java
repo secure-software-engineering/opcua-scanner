@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.Inet4Address;
-import java.net.InetAddress;
 import java.util.*;
 
 /**
@@ -83,7 +82,7 @@ class ScanningClient {
             }
         }
         if (loginWithMostPrivileges != null){
-            logger.info("Credentials with most privileges were username=\"{}\" and password=\"{}\".",
+            logger.info("Credentials with most privileges were username=\"{}\" and password=\"{}\".", //NOSONAR
                     loginWithMostPrivileges.getUsername(), loginWithMostPrivileges.getPassword());
 
         }

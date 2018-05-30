@@ -39,6 +39,13 @@ public class Configuration {
     private static final String DELETE_ACTIVATED_SETTING ="deleteActivated";
 
     /**
+     * If this is set to active, the client will try to call methods on the server. If successful, this might interfere
+     * with a running server, so use carefully.
+     */
+    private static boolean callActivated = false;
+    private static final String CALL_ACTIVATED_SETTING ="callActivated";
+
+    /**
      * File name for result file
      */
     private static String outputFileName = "OPCUAScannerResults";
@@ -52,6 +59,10 @@ public class Configuration {
     private static final String IP_ADDRESS_SETTING = "ipAddresses";
 
     private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
+
+    private Configuration() {
+        //Do not instantiate this, this read once and only changed from outside for testing
+    }
 
     public static void tryToLoadConfigFile(File file) {
         try(    FileReader fileReader = new FileReader(file);
@@ -90,6 +101,12 @@ public class Configuration {
                     writeActivated=true;
                 }
                 logger.info("Found writeActivated in config: {}", writeActivated);
+                break;
+            case CALL_ACTIVATED_SETTING:
+                if ("true".equals(settings[1].trim())){
+                    callActivated=true;
+                }
+                logger.info("Found callActivated in config: {}", callActivated);
                 break;
             case CIDR_SUFFIX_SETTING:
                 try{
@@ -158,5 +175,9 @@ public class Configuration {
 
     public static List<InetAddress> getIpAddresses(){
         return ipAddresses;
+    }
+
+    public static boolean isCallActivated() {
+        return callActivated;
     }
 }

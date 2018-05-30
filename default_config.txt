@@ -10,6 +10,10 @@ writeActivated = false
 # Beware of the potential consequences for running servers
 deleteActivated = false
 
+# Whether the client should try to call methods on the server
+# Beware of the potential consequences for running servers
+callActivated = true
+
 # Fixed bits of the IP from start on. Used to determine the size of the subnet.
 # The larger the suffix, the smaller the part of the subnet that will be scanned.
 cidrSuffix = 28

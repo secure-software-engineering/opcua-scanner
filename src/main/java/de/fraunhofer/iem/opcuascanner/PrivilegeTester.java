@@ -34,6 +34,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -109,8 +110,21 @@ class PrivilegeTester {
                     privileges.setPrivilegePerAuthentication(Privilege.DELETE, auth);
                 }
             }
-            //TODO check call
+            if (Configuration.isCallActivated()){
+                privileges.setPrivilegeWasTested(Privilege.CALL, auth);
 
+                //TODO how to get potential methods
+                List<CallMethodRequest> requests = new ArrayList<>();
+                CompletableFuture<CallResponse> f = client.call(requests);
+
+                CallResponse response = f.get();
+
+                CallMethodResult[] results = response.getResults();
+                if (results != null && results.length >0 && results[0].getStatusCode().isGood()) {
+                    privileges.setPrivilegePerAuthentication(Privilege.CALL, auth);
+                }
+
+            }
         }
         catch (Exception e){
             //If we can't connect that's fine
