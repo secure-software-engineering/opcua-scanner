@@ -17,7 +17,7 @@ public class PrivilegeTesterTest {
         PrivilegeTester.setOtherPrivilegesToTestedIfUnableToConnect(accessPrivileges, auth);
         for (Privilege privilege : Privilege.values()){
             if (!privilege.equals(Privilege.CONNECT)){
-                assertFalse("Privilege was not tested yet.", accessPrivileges.getWasTested(privilege, auth));
+                assertFalse("Privilege was not tested yet.", accessPrivileges.wasTested(privilege, auth));
             }
         }
     }
@@ -26,12 +26,12 @@ public class PrivilegeTesterTest {
     public void testSetOtherPrivilegesToTestedDoesNotSetIfConnectTrue(){
         AccessPrivileges accessPrivileges = new AccessPrivileges();
         Authentication auth = Authentication.ANONYMOUSLY;
-        accessPrivileges.privilegeWasTestedPerAuthentication(Privilege.CONNECT, auth);
-        accessPrivileges.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, auth);
+        accessPrivileges.setPrivilegeWasTested(Privilege.CONNECT, auth);
+        accessPrivileges.setPrivilegePerAuthentication(Privilege.CONNECT, auth);
         PrivilegeTester.setOtherPrivilegesToTestedIfUnableToConnect(accessPrivileges, auth);
         for (Privilege privilege : Privilege.values()){
             if (!privilege.equals(Privilege.CONNECT)){
-                assertFalse("Privilege was not tested yet.", accessPrivileges.getWasTested(privilege, auth));
+                assertFalse("Privilege was not tested yet.", accessPrivileges.wasTested(privilege, auth));
             }
         }
     }
@@ -40,11 +40,11 @@ public class PrivilegeTesterTest {
     public void testSetOtherPrivilegesToTestedSetsIfConnectNotTrue(){
         AccessPrivileges accessPrivileges = new AccessPrivileges();
         Authentication auth = Authentication.ANONYMOUSLY;
-        accessPrivileges.privilegeWasTestedPerAuthentication(Privilege.CONNECT, auth);
+        accessPrivileges.setPrivilegeWasTested(Privilege.CONNECT, auth);
         PrivilegeTester.setOtherPrivilegesToTestedIfUnableToConnect(accessPrivileges, auth);
         for (Privilege privilege : Privilege.values()){
             if (!privilege.equals(Privilege.CONNECT)){
-                assertTrue("Privilege was implicitly tested.", accessPrivileges.getWasTested(privilege, auth));
+                assertTrue("Privilege was implicitly tested.", accessPrivileges.wasTested(privilege, auth));
             }
         }
     }

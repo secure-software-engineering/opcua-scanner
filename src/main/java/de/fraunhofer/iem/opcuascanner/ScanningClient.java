@@ -62,7 +62,8 @@ class ScanningClient {
     }
 
     private static void tryToConnectWithDumbLogin(EndpointDescription endpoint) {
-        //TODO find login with most privileges
+        Login loginWithMostPrivileges = null;
+        AccessPrivileges bestAccessPrivilegesYet = new AccessPrivileges();
         AccessPrivileges privileges = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
         for (Login login : CommonCredentialsUtil.logins) {
             OpcUaClientConfig config = OpcUaClientConfig.builder()
@@ -75,7 +76,16 @@ class ScanningClient {
 
             privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
                     Authentication.COMMON_CREDENTIALS);
-            results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
+            if (privileges.betterThan(bestAccessPrivilegesYet, Authentication.COMMON_CREDENTIALS)){
+                results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
+                bestAccessPrivilegesYet = privileges;
+                loginWithMostPrivileges = login;
+            }
+        }
+        if (loginWithMostPrivileges != null){
+            logger.info("Credentials with most privileges were username=\"{}\" and password=\"{}\".",
+                    loginWithMostPrivileges.getUsername(), loginWithMostPrivileges.getPassword());
+
         }
     }
 

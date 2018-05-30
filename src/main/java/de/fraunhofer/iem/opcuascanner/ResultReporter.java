@@ -61,7 +61,7 @@ class ResultReporter {
 
             for(Authentication auth : Authentication.values()){
                 for (Privilege priv : Privilege.values()){
-                    boolean wasTested = privForServer.getWasTested(priv, auth);
+                    boolean wasTested = privForServer.wasTested(priv, auth);
                     boolean hasPrivilege = false;
                     if (wasTested){
                         hasPrivilege = privForServer.isPrivilegePerAuthentication(priv, auth);

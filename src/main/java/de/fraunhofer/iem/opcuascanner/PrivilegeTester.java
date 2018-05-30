@@ -48,12 +48,12 @@ class PrivilegeTester {
     static AccessPrivileges testPrivilege(OpcUaClient client, AccessPrivileges privileges, Authentication auth){
         try{
             client.connect().get();
-            privileges.setPrivilegePerAuthenticationToTrue(Privilege.CONNECT, auth);
+            privileges.setPrivilegePerAuthentication(Privilege.CONNECT, auth);
 
             //Now try to read
-            privileges.privilegeWasTestedPerAuthentication(Privilege.READ, auth);
+            privileges.setPrivilegeWasTested(Privilege.READ, auth);
             OpcuaUtil.readServerStateAndTime(client).thenAccept(values -> 
-                    privileges.setPrivilegePerAuthenticationToTrue(Privilege.READ, auth));
+                    privileges.setPrivilegePerAuthentication(Privilege.READ, auth));
             //Give the client some time to read
             sleep(50);
 
@@ -63,7 +63,7 @@ class PrivilegeTester {
 
             if (Configuration.isWriteActivated()){
                 //Now try to write
-                privileges.privilegeWasTestedPerAuthentication(Privilege.WRITE, auth);
+                privileges.setPrivilegeWasTested(Privilege.WRITE, auth);
                 List<NodeId> nodeIds = ImmutableList.of(new NodeId(2, "HelloWorld/ScalarTypes/Int32"));
                 Variant v = new Variant(0);
                 DataValue dv = new DataValue(v, null, null);
@@ -74,12 +74,12 @@ class PrivilegeTester {
                 // ...but block for the result
                 StatusCode status = f.get().get(0);
                 if (status.isGood()) {
-                    privileges.setPrivilegePerAuthenticationToTrue(Privilege.WRITE, auth);
+                    privileges.setPrivilegePerAuthentication(Privilege.WRITE, auth);
                 }
             }
             if (Configuration.isDeleteActivated()){
                 //Now try to delete the same thing we wrote
-                privileges.privilegeWasTestedPerAuthentication(Privilege.DELETE, auth);
+                privileges.setPrivilegeWasTested(Privilege.DELETE, auth);
                 NodeId nodeId = new NodeId(2, "HelloWorld/ScalarTypes/Int32");
                 DeleteNodesItem deleteNodesItem = new DeleteNodesItem(nodeId, true);
                 List<DeleteNodesItem> deleteNodesItems = ImmutableList.of(deleteNodesItem);
@@ -91,7 +91,7 @@ class PrivilegeTester {
                 DeleteNodesResponse response= f.get();
                 StatusCode[] results = response.getResults();
                 if (results != null && results.length >0 && results[0].isGood()) {
-                    privileges.setPrivilegePerAuthenticationToTrue(Privilege.DELETE, auth);
+                    privileges.setPrivilegePerAuthentication(Privilege.DELETE, auth);
                 }
             }
             //TODO check call
@@ -104,16 +104,16 @@ class PrivilegeTester {
         finally {
             client.disconnect();
         }
-        privileges.privilegeWasTestedPerAuthentication(Privilege.CONNECT, auth);
+        privileges.setPrivilegeWasTested(Privilege.CONNECT, auth);
         setOtherPrivilegesToTestedIfUnableToConnect(privileges, auth);
         return  privileges;
     }
 
     static void setOtherPrivilegesToTestedIfUnableToConnect(AccessPrivileges access, Authentication auth) {
-        if (access.getWasTested(Privilege.CONNECT, auth) &&
+        if (access.wasTested(Privilege.CONNECT, auth) &&
                 !access.isPrivilegePerAuthentication(Privilege.CONNECT, auth)){
             for (Privilege privilege : Privilege.values()){
-                access.privilegeWasTestedPerAuthentication(privilege, auth);
+                access.setPrivilegeWasTested(privilege, auth);
             }
         }
     }

@@ -13,7 +13,7 @@ public class AccessPrivilegeTest {
         for (Privilege privilege : Privilege.values()){
             for (Authentication authentication : Authentication.values()){
                 assertFalse("Privilege " + privilege + " should be false initially for authentication "
-                        +authentication +"." , accessPrivileges.getWasTested(privilege, authentication));
+                        +authentication +"." , accessPrivileges.wasTested(privilege, authentication));
             }
         }
     }
@@ -23,13 +23,13 @@ public class AccessPrivilegeTest {
         AccessPrivileges accessPrivileges = new AccessPrivileges();
         for (Privilege privilege : Privilege.values()){
             for (Authentication authentication : Authentication.values()){
-                accessPrivileges.privilegeWasTestedPerAuthentication(privilege, authentication);
+                accessPrivileges.setPrivilegeWasTested(privilege, authentication);
             }
         }
         for (Privilege privilege : Privilege.values()){
             for (Authentication authentication : Authentication.values()){
                 assertTrue("Get tested was not set correctly for "+ privilege + " " + authentication + ".",
-                    accessPrivileges.getWasTested(privilege, authentication));
+                    accessPrivileges.wasTested(privilege, authentication));
             }
         }
     }
@@ -37,16 +37,16 @@ public class AccessPrivilegeTest {
     @Test
     public void testSettingOnePrivilegeToTestedDoesNotInfluenceOthers(){
         AccessPrivileges accessPrivileges = new AccessPrivileges();
-        accessPrivileges.privilegeWasTestedPerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegeWasTested(Privilege.READ, Authentication.ANONYMOUSLY);
         for (Privilege privilege : Privilege.values()){
             for (Authentication authentication : Authentication.values()){
                 if (!authentication.equals(Authentication.ANONYMOUSLY) || !privilege.equals(Privilege.READ))
                 assertFalse("Get tested was not set correctly for "+ privilege + " " + authentication + ".",
-                        accessPrivileges.getWasTested(privilege, authentication));
+                        accessPrivileges.wasTested(privilege, authentication));
             }
         }
         assertTrue("Privilege should be correctly shown as tested even when others are not",
-                accessPrivileges.getWasTested(Privilege.READ, Authentication.ANONYMOUSLY));
+                accessPrivileges.wasTested(Privilege.READ, Authentication.ANONYMOUSLY));
     }
 
     @Test
@@ -54,10 +54,10 @@ public class AccessPrivilegeTest {
         AccessPrivileges accessPrivileges = new AccessPrivileges();
         for (Privilege privilege : Privilege.values()){
             for (Authentication authentication : Authentication.values()){
-                accessPrivileges.privilegeWasTestedPerAuthentication(privilege, authentication);
+                accessPrivileges.setPrivilegeWasTested(privilege, authentication);
             }
         }
-        accessPrivileges.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
         for (Privilege privilege : Privilege.values()){
             for (Authentication authentication : Authentication.values()){
                 if (!authentication.equals(Authentication.ANONYMOUSLY) || !privilege.equals(Privilege.READ))
@@ -78,7 +78,7 @@ public class AccessPrivilegeTest {
     @Test(expected = AssertionError.class)
     public void testGettingNonTestedPrivilegeThrowsExceptionEvenWhenPrivilegeIsTrue() {
         AccessPrivileges accessPrivileges = new AccessPrivileges();
-        accessPrivileges.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
         accessPrivileges.isPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
     }
 

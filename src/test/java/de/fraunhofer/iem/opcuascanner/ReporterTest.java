@@ -74,12 +74,12 @@ public class ReporterTest {
     @Test
     public void testOutputFileIsCorrect(){
         AccessPrivileges accessPrivileges = new AccessPrivileges();
-        accessPrivileges.privilegeWasTestedPerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
-        accessPrivileges.setPrivilegePerAuthenticationToTrue(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegeWasTested(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
         String headerForExpectedTrue = Authentication.ANONYMOUSLY + "_" + Privilege.READ;
         int fieldForExpectedTrue = -1; //This test expects to find true for this value later
 
-        accessPrivileges.privilegeWasTestedPerAuthentication(Privilege.CONNECT, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegeWasTested(Privilege.CONNECT, Authentication.ANONYMOUSLY);
         String headerForExpectedFalse = Authentication.ANONYMOUSLY + "_" + Privilege.CONNECT;
         int fieldForExpectedFalse = -1; //This test expects to find false for this value later
 
