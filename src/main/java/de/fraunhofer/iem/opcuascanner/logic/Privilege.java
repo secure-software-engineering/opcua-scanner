@@ -5,5 +5,5 @@ package de.fraunhofer.iem.opcuascanner.logic;
  * tested as "unknown" is a possible status.
  */
 public enum Privilege {
-    CONNECT, READ, WRITE, DELETE, CALL
+    CONNECT, READ, BROWSE, WRITE, DELETE, CALL
 }

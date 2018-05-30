@@ -58,8 +58,7 @@ class PrivilegeTester {
             sleep(50);
 
             //Now browse the servers information model
-            browseNode("", client, Identifiers.RootFolder);
-            //TODO figure out whether there's any privilege to set here
+            tryBrowsing(privileges, auth, client);
 
             if (Configuration.isWriteActivated()){
                 //Now try to write
@@ -117,6 +116,34 @@ class PrivilegeTester {
             }
         }
     }
+
+    private static void tryBrowsing(AccessPrivileges privileges, Authentication auth, OpcUaClient client) {
+        privileges.setPrivilegeWasTested(Privilege.BROWSE, auth);
+        BrowseDescription browse = new BrowseDescription(
+                Identifiers.RootFolder,
+                BrowseDirection.Forward,
+                Identifiers.References,
+                true,
+                uint(NodeClass.Object.getValue() | NodeClass.Variable.getValue()),
+                uint(BrowseResultMask.All.getValue())
+        );
+
+        try {
+            BrowseResult browseResult = client.browse(browse).get();
+            privileges.setPrivilegePerAuthentication(Privilege.BROWSE, auth);
+            List<ReferenceDescription> references = toList(browseResult.getReferences());
+
+            for (ReferenceDescription rd : references) {
+
+                // recursively browse to children
+                rd.getNodeId().local().ifPresent(nodeId -> browseNode("  ", client, nodeId));
+            }
+        } catch (InterruptedException | ExecutionException e) {
+            logger.error("Browsing nodeId={} failed: {}", Identifiers.RootFolder, e.getMessage(), e);
+        }
+
+    }
+
 
     /**
      * Browses a node and all its children
