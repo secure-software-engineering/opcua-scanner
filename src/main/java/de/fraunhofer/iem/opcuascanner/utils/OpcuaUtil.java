@@ -21,8 +21,8 @@ public class OpcuaUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(OpcuaUtil.class);
 
-    static final String ADDR_PREFIX = "opc.tcp://";
-    static final String ADDR_SUFFIX = ":4840";
+    public static final String ADDR_PREFIX = "opc.tcp://";
+    public static final String ADDR_SUFFIX = ":4840";
     static final String DISCOVERY_SUFFIX = "/discovery";
 
     private OpcuaUtil(){
