@@ -91,62 +91,73 @@ public class Configuration {
         }
         switch(settings[0].trim()){
             case DELETE_ACTIVATED_SETTING:
-                if ("true".equals(settings[1].trim())){
-                    deleteActivated=true;
-                }
+                deleteActivated=parseBinarySetting(settings[1]);
                 logger.info("Found deleteActivated in config: {}", deleteActivated);
                 break;
             case WRITE_ACTIVATED_SETTING:
-                if ("true".equals(settings[1].trim())){
-                    writeActivated=true;
-                }
+                writeActivated=parseBinarySetting(settings[1]);
                 logger.info("Found writeActivated in config: {}", writeActivated);
                 break;
             case CALL_ACTIVATED_SETTING:
-                if ("true".equals(settings[1].trim())){
-                    callActivated=true;
-                }
+                callActivated=parseBinarySetting(settings[1]);
                 logger.info("Found callActivated in config: {}", callActivated);
                 break;
             case CIDR_SUFFIX_SETTING:
-                try{
-                    int newSuffix = Integer.parseInt(settings[1].trim());
-                    cidrSuffix = newSuffix;
-                    logger.info("Found cidrSuffix in config: {}", cidrSuffix);
-                } catch (NumberFormatException n){
-                    logger.info("Could not read integer value: {}", setting);
-                }
+                parseSuffixSetting(settings[1]);
                 break;
             case PORT_SETTING:
-                try{
-                    int newPort = Integer.parseInt(settings[1].trim());
-                    port = newPort;
-                    logger.info("Found port in config: {}", port);
-                } catch (NumberFormatException n){
-                    logger.info("Could not read integer value: {}", setting);
-                }
+                parsePortSetting(settings[1]);
                 break;
             case OUTPUT_FILE_SETTING:
                 outputFileName = settings[1].trim();
                 logger.info("Found outputFileName in config: {}", outputFileName);
                 break;
             case IP_ADDRESS_SETTING:
-                String[] addresses = settings[1].trim().split(",");
-                for (String potentialAddress : addresses){
-                    try{
-                        InetAddress address = InetAddress.getByName(potentialAddress.trim());
-                        if (address != null){
-                            ipAddresses.add(address);
-                            logger.info("Found ip address in config: {}", potentialAddress);
-                        }
-                    } catch (UnknownHostException e) {
-                        logger.info("Could not parse ip address: {}", potentialAddress);
-                    }
-                }
+                parseIpAddressSetting(settings[1]);
                 break;
             default:
                 logger.info("Could not read setting: {}", setting);
         }
+    }
+
+    private static void parseIpAddressSetting(String setting) {
+        String[] addresses = setting.trim().split(",");
+        for (String potentialAddress : addresses){
+            try{
+                InetAddress address = InetAddress.getByName(potentialAddress.trim());
+                if (address != null){
+                    ipAddresses.add(address);
+                    logger.info("Found ip address in config: {}", potentialAddress);
+                }
+            } catch (UnknownHostException e) {
+                logger.info("Could not parse ip address: {}", potentialAddress);
+            }
+        }
+    }
+
+    private static void parsePortSetting(String setting) {
+        try{
+            int newPort = Integer.parseInt(setting.trim());
+            port = newPort;
+            logger.info("Found port in config: {}", port);
+        } catch (NumberFormatException n){
+            logger.info("Could not read integer value: {}", setting);
+        }
+    }
+
+    private static boolean parseBinarySetting(String setting){
+        return "true".equals(setting.trim());
+    }
+
+    private static void parseSuffixSetting(String setting){
+        try{
+            int newSuffix = Integer.parseInt(setting.trim());
+            cidrSuffix = newSuffix;
+            logger.info("Found cidrSuffix in config: {}", cidrSuffix);
+        } catch (NumberFormatException n){
+            logger.info("Could not read integer value: {}", setting);
+        }
+
     }
 
     public static String getOutputFileName() {
