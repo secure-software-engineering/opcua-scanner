@@ -2,8 +2,9 @@ package de.fraunhofer.iem.opcuascanner.utils;
 
 import de.fraunhofer.iem.opcuascanner.Configuration;
 import org.apache.commons.net.util.SubnetUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 
 import java.io.IOException;
 import java.net.*;
@@ -13,7 +14,7 @@ public class NetworkUtil {
 
     private static final int DEFAULT_TIMEOUT_IN_MS = 500;
 
-    private static final Logger logger = LoggerFactory.getLogger(NetworkUtil.class);
+    private static final Logger logger = LogManager.getLogger(NetworkUtil.class);
 
     private NetworkUtil(){
         //private constructor since utility class should not be instantiated

@@ -8,12 +8,13 @@ import de.fraunhofer.iem.opcuascanner.utils.CertificateUtil;
 import de.fraunhofer.iem.opcuascanner.utils.CommonCredentialsUtil;
 import de.fraunhofer.iem.opcuascanner.utils.NetworkUtil;
 import de.fraunhofer.iem.opcuascanner.utils.OpcuaUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.io.File;
 import java.net.Inet4Address;
@@ -30,7 +31,7 @@ import java.util.*;
  */
 class ScanningClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScanningClient.class);
+    private static final Logger logger = LogManager.getLogger(ScanningClient.class);
 
     private static HashMap<String,AccessPrivileges> results = new HashMap<>();
 

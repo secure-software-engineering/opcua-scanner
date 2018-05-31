@@ -1,7 +1,7 @@
 package de.fraunhofer.iem.opcuascanner;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -58,7 +58,7 @@ public class Configuration {
     private static List<InetAddress> ipAddresses = new ArrayList<>();
     private static final String IP_ADDRESS_SETTING = "ipAddresses";
 
-    private static final Logger logger = LoggerFactory.getLogger(Configuration.class);
+    private static final Logger logger = LogManager.getLogger(Configuration.class);
 
     private Configuration() {
         //Do not instantiate this, this read once and only changed from outside for testing

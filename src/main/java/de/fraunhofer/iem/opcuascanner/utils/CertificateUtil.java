@@ -1,9 +1,9 @@
 package de.fraunhofer.iem.opcuascanner.utils;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.stack.core.util.SelfSignedCertificateBuilder;
 import org.eclipse.milo.opcua.stack.core.util.SelfSignedCertificateGenerator;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -13,7 +13,7 @@ public class CertificateUtil {
 
     public static final String APPLICATION_URI = "urn:fraunhofer:iem:opcua:client";
 
-    private static final Logger logger = LoggerFactory.getLogger(CertificateUtil.class);
+    private static final Logger logger = LogManager.getLogger(CertificateUtil.class);
 
     private static KeyPair keyPair;
     private static X509Certificate selfSignedCertificate;

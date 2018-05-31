@@ -6,14 +6,13 @@ import de.fraunhofer.iem.opcuascanner.logic.Authentication;
 import de.fraunhofer.iem.opcuascanner.logic.Privilege;
 import de.fraunhofer.iem.opcuascanner.utils.BrowseUtil;
 import de.fraunhofer.iem.opcuascanner.utils.OpcuaUtil;
+import org.apache.logging.log4j.LogManager;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
 import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
 import org.eclipse.milo.opcua.stack.core.types.structured.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ import static java.lang.Thread.sleep;
 
 class PrivilegeTester {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpcuaUtil.class);
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(OpcuaUtil.class);
 
     private PrivilegeTester(){
         //This class is meant to be stateless, do not instantiate it

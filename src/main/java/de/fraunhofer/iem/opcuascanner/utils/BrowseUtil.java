@@ -3,6 +3,8 @@ package de.fraunhofer.iem.opcuascanner.utils;
 import de.fraunhofer.iem.opcuascanner.logic.AccessPrivileges;
 import de.fraunhofer.iem.opcuascanner.logic.Authentication;
 import de.fraunhofer.iem.opcuascanner.logic.Privilege;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
@@ -12,8 +14,6 @@ import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
 import org.eclipse.milo.opcua.stack.core.types.structured.BrowseDescription;
 import org.eclipse.milo.opcua.stack.core.types.structured.BrowseResult;
 import org.eclipse.milo.opcua.stack.core.types.structured.ReferenceDescription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,7 +41,7 @@ import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.toList;
 
 public class BrowseUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(BrowseUtil.class);
+    private static final Logger logger = LogManager.getLogger(BrowseUtil.class);
 
 
     private BrowseUtil() {

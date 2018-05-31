@@ -4,11 +4,12 @@ import de.fraunhofer.iem.opcuascanner.logic.AccessPrivileges;
 import de.fraunhofer.iem.opcuascanner.logic.Authentication;
 import de.fraunhofer.iem.opcuascanner.logic.Privilege;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.io.*;
 
@@ -19,7 +20,7 @@ import static org.junit.Assert.*;
 
 public class ReporterTest {
 
-    private static final Logger logger = LoggerFactory.getLogger(ReporterTest.class);
+    private static final Logger logger = LogManager.getLogger(ReporterTest.class);
 
     private HashMap<String, AccessPrivileges> results  = new HashMap<>();
 

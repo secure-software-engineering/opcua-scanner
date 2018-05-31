@@ -1,6 +1,8 @@
 package de.fraunhofer.iem.opcuascanner.utils;
 
 import com.google.common.collect.ImmutableList;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
@@ -8,8 +10,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 
 import java.net.InetAddress;
 import java.util.HashSet;
@@ -19,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class OpcuaUtil {
 
-    private static final Logger logger = LoggerFactory.getLogger(OpcuaUtil.class);
+    private static final Logger logger = LogManager.getLogger(OpcuaUtil.class);
 
     public static final String ADDR_PREFIX = "opc.tcp://";
     public static final String ADDR_SUFFIX = ":4840";

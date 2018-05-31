@@ -3,8 +3,7 @@ package de.fraunhofer.iem.opcuascanner;
 import de.fraunhofer.iem.opcuascanner.logic.AccessPrivileges;
 import de.fraunhofer.iem.opcuascanner.logic.Authentication;
 import de.fraunhofer.iem.opcuascanner.logic.Privilege;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.apache.logging.log4j.LogManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,7 +18,7 @@ class ResultReporter {
     public static final String DEFAULT_FILE_EXTENSION= ".csv";
     private static final String UNKNOWN = "unknown";
 
-    private static final Logger logger = LoggerFactory.getLogger(ResultReporter.class);
+    private static final org.apache.logging.log4j.Logger logger = LogManager.getLogger(ResultReporter.class);
 
 
     private ResultReporter(){

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="info" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
+<!--#[ua-netty-event-loop-1] WARN org.eclipse.milo.opcua.stack.core.application.InsecureCertificateValidator - Skipping trust chain verification for certificate: C=US, ST=CA, L=Folsom, OU=dev, O=digitalpetri, CN=Eclipse Milo Example Client -->
