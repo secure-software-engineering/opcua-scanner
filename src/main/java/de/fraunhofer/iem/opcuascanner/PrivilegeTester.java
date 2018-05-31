@@ -7,10 +7,7 @@ import de.fraunhofer.iem.opcuascanner.logic.Privilege;
 import de.fraunhofer.iem.opcuascanner.utils.OpcuaUtil;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.Identifiers;
-import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
-import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
-import org.eclipse.milo.opcua.stack.core.types.builtin.StatusCode;
-import org.eclipse.milo.opcua.stack.core.types.builtin.Variant;
+import org.eclipse.milo.opcua.stack.core.types.builtin.*;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseDirection;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.BrowseResultMask;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.NodeClass;
@@ -35,7 +32,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -44,6 +43,8 @@ import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.
 import static org.eclipse.milo.opcua.stack.core.util.ConversionUtil.toList;
 
 class PrivilegeTester {
+
+    private static HashMap<NodeId,NodeId> methodNodes = new HashMap<>();
 
     private static final Logger logger = LoggerFactory.getLogger(OpcuaUtil.class);
 
@@ -113,17 +114,32 @@ class PrivilegeTester {
             if (Configuration.isCallActivated()){
                 privileges.setPrivilegeWasTested(Privilege.CALL, auth);
 
-                //TODO how to get potential methods
-                List<CallMethodRequest> requests = new ArrayList<>();
-                CompletableFuture<CallResponse> f = client.call(requests);
+                if (!methodNodes.isEmpty()){
+                    List<CallMethodRequest> requests = new ArrayList<>();
+                    Variant[] parameters = new Variant[0];
+                    for (Map.Entry<NodeId, NodeId> objectWithMethod : methodNodes.entrySet()){
+                        logger.info("Found method with id {} on object with id {}.", objectWithMethod.getValue(),
+                                objectWithMethod.getKey());
+                        CallMethodRequest request = new CallMethodRequest(objectWithMethod.getKey(), objectWithMethod.getValue(), parameters);
+                        requests.add(request);
+                    }
 
-                CallResponse response = f.get();
 
-                CallMethodResult[] results = response.getResults();
-                if (results != null && results.length >0 && results[0].getStatusCode().isGood()) {
-                    privileges.setPrivilegePerAuthentication(Privilege.CALL, auth);
+                    CompletableFuture<CallResponse> f = client.call(requests);
+
+                    CallResponse response = f.get();
+
+                    CallMethodResult[] results = response.getResults();
+                    if (results != null && results.length >0) {
+                        for (CallMethodResult result : results){
+                            if (result.getStatusCode().isGood()){
+                                privileges.setPrivilegePerAuthentication(Privilege.CALL, auth);
+                                logger.info("Successfully called function {} on {}", result.getTypeId(),
+                                        client.getStackClient().getEndpointUrl());
+                            }
+                        }
+                    }
                 }
-
             }
         }
         catch (Exception e){
@@ -262,6 +278,10 @@ class PrivilegeTester {
                     e.appendChild(document.createTextNode(rd.getBrowseName().getName()));
                     parent.appendChild(e);
                     rd.getNodeId().local().ifPresent(nodeId -> browseNode(document, e, client, nodeId));
+                    //Check if you find any methods while you're browsing, to test CALL later
+                    if (rd.getNodeClass().equals(NodeClass.Method)){
+                        rd.getNodeId().local().ifPresent(nodeId -> methodNodes.put(browseRoot, nodeId));
+                    }
                 }
 
                 // recursively browse to children
