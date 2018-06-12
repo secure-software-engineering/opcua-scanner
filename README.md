@@ -24,13 +24,6 @@ For each successful connection, the client tries to
 * delete information from the server
 * call functions on the server if any where detected while browsing
 
-The output is written to a csv file offering an overview which
-privileges (e.g., connecting, reading, writing, deleting) were
-possible on which server per authentication method.
-
-The csv file can be opened as a table using standard office calculation
- programs, such as Microsoft Excel or LibreOffice Calc.
-
 ## Execution
 To build and run the project, you need to have Maven and Java installed.
  Run
@@ -49,6 +42,18 @@ This jar can be run to use the scanner
 <code> java -jar opcua-scanner/target/opcua-scanner-jar-with-dependencies.jar config.txt </code>
 
 with a configuration file, here config.txt
+
+## Result Output 
+The output is written to a csv file offering an overview which
+privileges (e.g., connecting, reading, writing, deleting) were
+possible on which server per authentication method.
+If you execute the scanner as described in the section [Execution](#Execution) you find the result here 
+<code> opcua-scanner/target/OPCUAScannerResults.csv </code>
+
+The csv file can be imported to a table using standard office calculation
+ programs, such as Microsoft Excel or LibreOffice Calc.
+ The separator of the data is a ",".
+
 
 ## Configuration
 
