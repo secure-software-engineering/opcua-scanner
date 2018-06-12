@@ -10,6 +10,8 @@ This scanner scans a subnet relative to its own IP-address(es) and tries
  port). The size of the scanned subnet is determined by a given
  [CIDR-Suffix](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing).
 
+## Functionality
+
 Endpoints are retrieved for all reachable hosts.
 
 For each endpoint, the scanning client tries to connect in several ways,
@@ -29,6 +31,26 @@ possible on which server per authentication method.
 The csv file can be opened as a table using standard office calculation
  programs, such as Microsoft Excel or LibreOffice Calc.
 
+## Execution
+To build and run the project, you need to have Maven and Java installed.
+ Run
+
+ <code>mvn package </code>
+
+ in the directory containing the pom.xml file.
+
+The output will show a message like
+
+<code>[INFO] Building jar: opcua-scanner/target/opcua-scanner-jar-with-dependencies.jar</code>
+
+
+This jar can be run to use the scanner
+
+<code> java -jar opcua-scanner/target/opcua-scanner-jar-with-dependencies.jar config.txt </code>
+
+with a configuration file, here config.txt
+
+## Configuration
 
 A configuration file can be passed as a command line parameter.
 There is no need to pass a file, unless you differ from the default
@@ -55,3 +77,4 @@ More reasonable configuration options could be:
 - whether to retrieve the information model via browsing
 - where to output the information model from browsing, i.e., console
  or file
+
