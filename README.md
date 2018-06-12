@@ -15,11 +15,15 @@ Endpoints are retrieved for all reachable hosts.
 For each endpoint, the scanning client tries to connect in several ways,
  such as anonymously or using common username/password combinations.
 
-For each successful connection, the client tries to read, write and
-optionally delete from the server.
+For each successful connection, the client tries to
+* read information from the server
+* browse the information on the server (and outputs it to xml file)
+* write information to the server
+* delete information from the server
+* call functions on the server if any where detected while browsing
 
 The output is written to a csv file offering an overview which
-privileges (currently connecting, reading, writing, deleting) were
+privileges (e.g., connecting, reading, writing, deleting) were
 possible on which server per authentication method.
 
 The csv file can be opened as a table using standard office calculation
@@ -43,10 +47,11 @@ the server. Beware of the potential consequences for running servers
 - <code>port</code> The port to scan on.
 - <code>outputFileName</code> The file name of the csv file to produce.
     This should not include the file extension.
+- <code>ipAddresses</code> The ip addresses (or hostnames) which to use
+as a base for the CIDR-Suffix
 
 More reasonable configuration options could be:
 - a file containing (additional?) credentials to test
-- whether to test the information model via browsing
+- whether to retrieve the information model via browsing
 - where to output the information model from browsing, i.e., console
- or files
-- an IP address to scan from or a fixed subnet to scan
+ or file
