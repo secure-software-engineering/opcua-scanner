@@ -46,9 +46,9 @@ The output will show a message like
 
 This jar can be run to use the scanner
 
-<code> java -jar opcua-scanner/target/opcua-scanner-jar-with-dependencies.jar config.txt </code>
+<code> java -jar opcua-scanner/target/opcua-scanner-jar-with-dependencies.jar opcua-scanner/default_config.txt </code>
 
-with a configuration file, here config.txt
+with a configuration file, here default_config.txt
 
 ## Configuration
 
