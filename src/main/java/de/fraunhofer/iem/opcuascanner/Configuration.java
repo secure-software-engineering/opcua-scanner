@@ -126,28 +126,10 @@ public class Configuration {
             //Determine for each address whether it is formatted with a CIDR suffix, hostname or range
             //Is this formatted as an ip address with a CIDR suffix?
             if (IP_ADDR_CIDR_PATTERN.matcher(potentialAddress).matches()){
-                try{
-                    //Use apache subnet utils to get all addresses in that subnet
-                    SubnetUtils utils = new SubnetUtils(potentialAddress);
-                    SubnetUtils.SubnetInfo info = utils.getInfo();
-                    for (String addressInSubnet : info.getAllAddresses()){
-                        ipAddresses.add(InetAddress.getByName(addressInSubnet));
-                    }
-                    logger.info("Found ip address with CIDR suffix in config: {}", potentialAddress);
-                } catch (UnknownHostException e) {
-                    logger.info("Could not parse ip address with CIDR suffix: {}", potentialAddress);
-                }
+                parseIpWithCidrSuffix(potentialAddress);
                 //Or is it formatted like an ip range?
             } else if (IP_ADDR_RANGE_PATTERN.matcher(potentialAddress).matches()){
-                String[] rangeSplit = potentialAddress.trim().split("-");
-                try{
-                    logger.info("Found ip address with range in config: {}", potentialAddress);
-                    InetAddress address = InetAddress.getByName(rangeSplit[0]);
-                    //TODO parse range
-
-                } catch (UnknownHostException e) {
-                    logger.info("Could not parse ip address: {}", potentialAddress);
-                }
+                parseIpWithRange(potentialAddress);
                 //If it is not either, assume it's a single ip address or hostname
             } else{
                 try{
@@ -158,6 +140,32 @@ public class Configuration {
                     logger.info("Could not parse ip address: {}", potentialAddress);
                 }
             }
+        }
+    }
+
+    private static void parseIpWithRange(String potentialAddress) {
+        String[] rangeSplit = potentialAddress.trim().split("-");
+        try{
+            logger.info("Found ip address with range in config: {}", potentialAddress);
+            InetAddress address = InetAddress.getByName(rangeSplit[0]);
+            //TODO parse range9
+
+        } catch (UnknownHostException e) {
+            logger.info("Could not parse ip address: {}", potentialAddress);
+        }
+    }
+
+    private static void parseIpWithCidrSuffix(String potentialAddress) {
+        try{
+            //Use apache subnet utils to get all addresses in that subnet
+            SubnetUtils utils = new SubnetUtils(potentialAddress);
+            SubnetUtils.SubnetInfo info = utils.getInfo();
+            for (String addressInSubnet : info.getAllAddresses()){
+                ipAddresses.add(InetAddress.getByName(addressInSubnet));
+            }
+            logger.info("Found ip address with CIDR suffix in config: {}", potentialAddress);
+        } catch (UnknownHostException e) {
+            logger.info("Could not parse ip address with CIDR suffix: {}", potentialAddress);
         }
     }
 
