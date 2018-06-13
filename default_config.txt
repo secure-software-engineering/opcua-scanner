@@ -14,12 +14,20 @@ deleteActivated = false
 # Beware of the potential consequences for running servers
 callActivated = true
 
-# Fixed bits of the IP from start on. Used to determine the size of the subnet.
-# The larger the suffix, the smaller the part of the subnet that will be scanned.
-cidrSuffix = 28
-
 # The used port for testing tcp connections and accessing servers
 port = 4840
 
 # File name of the csv file to export the results to
 outputFileName = OPCUAScannerResults
+
+
+# The ip ranges to scan. Can be either:
+# A hostname
+# A single IP address
+# An IP address with a CIDR Suffix (such as 127.0.0.1/29),
+# Or an IP range 127.0.0.1-20 will scan ip addresses 127.0.0.1 through 127.0.0.20.
+# Hint: CIDR Suffix = Fixed bits of the IP from start on. Used to determine the size of the subnet.
+# The larger the suffix, the smaller the part of the subnet that will be scanned.
+
+# If nothing is specified here, the scanner will scan relative to the own ip address(es) with a CIDR suffix of 29.
+#ipRanges = mfactorengineering.com, 127.0.0.1-20, 127.0.0.1/29

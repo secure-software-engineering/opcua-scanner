@@ -1,5 +1,6 @@
 package de.fraunhofer.iem.opcuascanner;
 
+import org.apache.commons.net.util.SubnetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -8,18 +9,12 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class Configuration {
 
     /**
-     * Fixed bits of the IP from start on. Used to determine the size of the subnet. The larger the suffix, the
-     * smaller the part of the subnet that will be scanned.
-     */
-    private static int cidrSuffix = 28;
-    private static final String CIDR_SUFFIX_SETTING = "cidrSuffix";
-
-    /**
-     * The port to
+     * The port to try to reach the hosts on
      */
     private static int port = 4840;
     private static final String PORT_SETTING = "port";
@@ -52,11 +47,18 @@ public class Configuration {
     private static final String OUTPUT_FILE_SETTING = "outputFileName";
 
     /**
-     * IP Address to which to apply the cidr suffix and scan. If these are empty {@link de.fraunhofer.iem.opcuascanner.utils.NetworkUtil}
-     * will use the own ip addresses it detects instead
+     * IP Ranges determining ip addresses to can. If these are empty {@link de.fraunhofer.iem.opcuascanner.utils.NetworkUtil}
+     * will use the own ip addresses it detects instead with the default CIDR suffix.
      */
     private static List<InetAddress> ipAddresses = new ArrayList<>();
-    private static final String IP_ADDRESS_SETTING = "ipAddresses";
+    private static final String IP_RANGES_SETTING = "ipRanges";
+
+    //TODO improve regex pattern
+    private static final Pattern IP_ADDR_CIDR_PATTERN = Pattern.compile(
+            "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\/(\\d|[012]\\d|3[012])$");
+
+    private static final Pattern IP_ADDR_RANGE_PATTERN = Pattern.compile(
+            "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])-([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
 
     private static final Logger logger = LogManager.getLogger(Configuration.class);
 
@@ -102,9 +104,6 @@ public class Configuration {
                 callActivated=parseBinarySetting(settings[1]);
                 logger.info("Found callActivated in config: {}", callActivated);
                 break;
-            case CIDR_SUFFIX_SETTING:
-                parseSuffixSetting(settings[1]);
-                break;
             case PORT_SETTING:
                 parsePortSetting(settings[1]);
                 break;
@@ -112,7 +111,7 @@ public class Configuration {
                 outputFileName = settings[1].trim();
                 logger.info("Found outputFileName in config: {}", outputFileName);
                 break;
-            case IP_ADDRESS_SETTING:
+            case IP_RANGES_SETTING:
                 parseIpAddressSetting(settings[1]);
                 break;
             default:
@@ -123,14 +122,40 @@ public class Configuration {
     private static void parseIpAddressSetting(String setting) {
         String[] addresses = setting.trim().split(",");
         for (String potentialAddress : addresses){
-            try{
-                InetAddress address = InetAddress.getByName(potentialAddress.trim());
-                if (address != null){
+            //Determine for each address whether it is formatted with a CIDR suffix, hostname or range
+            //Is this formatted as an ip address with a CIDR suffix?
+            if (IP_ADDR_CIDR_PATTERN.matcher(potentialAddress).matches()){
+                try{
+                    //Use apache subnet utils to get all addresses in that subnet
+                    SubnetUtils utils = new SubnetUtils(potentialAddress);
+                    SubnetUtils.SubnetInfo info = utils.getInfo();
+                    for (String addressInSubnet : info.getAllAddresses()){
+                        ipAddresses.add(InetAddress.getByName(addressInSubnet));
+                    }
+                    logger.info("Found ip address with CIDR suffix in config: {}", potentialAddress);
+                } catch (UnknownHostException e) {
+                    logger.info("Could not parse ip address with CIDR suffix: {}", potentialAddress);
+                }
+                //Or is it formatted like an ip range?
+            } else if (IP_ADDR_RANGE_PATTERN.matcher(potentialAddress).matches()){
+                String[] rangeSplit = potentialAddress.trim().split("-");
+                try{
+                    logger.info("Found ip address with range in config: {}", potentialAddress);
+                    InetAddress address = InetAddress.getByName(rangeSplit[0]);
+                    //TODO parse range
+
+                } catch (UnknownHostException e) {
+                    logger.info("Could not parse ip address: {}", potentialAddress);
+                }
+                //If it is not either, assume it's a single ip address or hostname
+            } else{
+                try{
+                    InetAddress address = InetAddress.getByName(potentialAddress.trim());
                     ipAddresses.add(address);
                     logger.info("Found ip address in config: {}", potentialAddress);
+                } catch (UnknownHostException e) {
+                    logger.info("Could not parse ip address: {}", potentialAddress);
                 }
-            } catch (UnknownHostException e) {
-                logger.info("Could not parse ip address: {}", potentialAddress);
             }
         }
     }
@@ -147,17 +172,6 @@ public class Configuration {
 
     private static boolean parseBinarySetting(String setting){
         return "true".equals(setting.trim());
-    }
-
-    private static void parseSuffixSetting(String setting){
-        try{
-            int newSuffix = Integer.parseInt(setting.trim());
-            cidrSuffix = newSuffix;
-            logger.info("Found cidrSuffix in config: {}", cidrSuffix);
-        } catch (NumberFormatException n){
-            logger.info("Could not read integer value: {}", setting);
-        }
-
     }
 
     public static String getOutputFileName() {
@@ -178,10 +192,6 @@ public class Configuration {
 
     public static int getPort() {
         return port;
-    }
-
-    public static int getCidrSuffix() {
-        return cidrSuffix;
     }
 
     public static List<InetAddress> getIpAddresses(){
