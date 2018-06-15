@@ -12,7 +12,7 @@ This scanner scans a subnet relative to its own IP-address(es) and tries
  
 ## Video
 
-![asciicast](https://github.com/mbruns42/opcua-scanner/blob/master/videos/tuturial.svg "OPC UA Scanner Getting Started")
+![asciicast](https://github.com/mbruns42/opcua-scanner/blob/master/videos/gettingStarted.svg "OPC UA Scanner Getting Started")
 
 [Getting Started Video on Asciinema.org](https://asciinema.org/a/HbKxnzRPGh6DWcQmppblPY859)
 
