@@ -9,6 +9,12 @@ This scanner scans a subnet relative to its own IP-address(es) and tries
  to reach other hosts on the OPC UA default port 4840 (or a specified
  port). The size of the scanned subnet is determined by a given
  [CIDR-Suffix](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing).
+ 
+## Video
+
+![asciicast](https://github.com/mbruns42/opcua-scanner/blob/master/videos/gettingStarted.svg "OPC UA Scanner Getting Started")
+
+[Getting Started Video on Asciinema.org](https://asciinema.org/a/HbKxnzRPGh6DWcQmppblPY859)
 
 ## Functionality
 
