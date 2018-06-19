@@ -5,10 +5,12 @@ import org.apache.logging.log4j.Logger;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.*;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
@@ -91,13 +93,27 @@ public class CertificateUtil {
         return workingSelfSignedCertificate;
     }
 
-    //TODO expired
+    //TODO try connecting with expired certificate
+    public static X509Certificate getExpiredCertificate(){
+        if (expiredCertificate == null) {
+            keyPair = getOrGenerateRsaKeyPair();
+            dnsNames = new ArrayList<>();
+            dnsNames.add("localhost");
+            try {
+                expiredCertificate = generateSelfSigned(threeYearsAgo, today, dnsNames, ipAddresses);
+            } catch (Exception e) {
+                logger.info("Could not make self-signed certificate: {}", e.getMessage());
+            }
+        }
+        return expiredCertificate;
+    }
+
     //TODO not yet valid
     //TODO wrong certificate usage
     //TODO Wrong hostname
 
-
-    public static X509Certificate generateSelfSigned(
+    //Part below taken from eclipse milo with minor alterations
+    private static X509Certificate generateSelfSigned(
             Date notBefore,
             Date notAfter,
             List<String> dnsNames,
@@ -130,6 +146,9 @@ public class CertificateUtil {
                 subjectPublicKeyInfo
         );
 
+        addKeyUsage(certificateBuilder);
+        addSubjectAlternativeNames(certificateBuilder, keyPair, dnsNames, ipAddresses);
+
         ContentSigner contentSigner = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM)
                 .setProvider(new BouncyCastleProvider())
                 .build(keyPair.getPrivate());
@@ -137,5 +156,55 @@ public class CertificateUtil {
         X509CertificateHolder certificateHolder = certificateBuilder.build(contentSigner);
 
         return new JcaX509CertificateConverter().getCertificate(certificateHolder);
+    }
+
+    private static void addKeyUsage(X509v3CertificateBuilder certificateBuilder) throws CertIOException {
+        certificateBuilder.addExtension(
+                Extension.keyUsage,
+                false,
+                new KeyUsage(
+                        KeyUsage.dataEncipherment |
+                                KeyUsage.digitalSignature |
+                                KeyUsage.keyAgreement |
+                                KeyUsage.keyCertSign |
+                                KeyUsage.keyEncipherment |
+                                KeyUsage.nonRepudiation
+                )
+        );
+    }
+
+    private static void addSubjectAlternativeNames(
+            X509v3CertificateBuilder certificateBuilder,
+            KeyPair keyPair,
+            List<String> dnsNames,
+            List<String> ipAddresses) throws CertIOException, NoSuchAlgorithmException {
+
+        List<GeneralName> generalNames = new ArrayList<>();
+
+        generalNames.add(new GeneralName(GeneralName.uniformResourceIdentifier, APPLICATION_URI));
+
+        dnsNames.stream()
+                .distinct()
+                .map(s -> new GeneralName(GeneralName.dNSName, s))
+                .forEach(generalNames::add);
+
+        ipAddresses.stream()
+                .distinct()
+                .map(s -> new GeneralName(GeneralName.iPAddress, s))
+                .forEach(generalNames::add);
+
+        certificateBuilder.addExtension(
+                Extension.subjectAlternativeName,
+                false,
+                new GeneralNames(generalNames.toArray(new GeneralName[]{}))
+        );
+
+        // Subject Key Identifier
+        certificateBuilder.addExtension(
+                Extension.subjectKeyIdentifier,
+                false,
+                new JcaX509ExtensionUtils()
+                        .createSubjectKeyIdentifier(keyPair.getPublic())
+        );
     }
 }
