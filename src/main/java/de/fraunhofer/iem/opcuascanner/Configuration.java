@@ -125,6 +125,7 @@ public class Configuration {
         for (String potentialAddress : addresses){
             //Determine for each address whether it is formatted with a CIDR suffix, hostname or range
             //Is this formatted as an ip address with a CIDR suffix?
+            potentialAddress = potentialAddress.trim();
             if (IP_ADDR_CIDR_PATTERN.matcher(potentialAddress).matches()){
                 parseIpWithCidrSuffix(potentialAddress);
                 //Or is it formatted like an ip range?
