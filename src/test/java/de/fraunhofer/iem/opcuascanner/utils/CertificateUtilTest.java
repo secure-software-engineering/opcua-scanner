@@ -23,7 +23,7 @@ public class CertificateUtilTest {
 
     @Test
     public void testGetCertificateReturnsValidCertificate() throws CertificateExpiredException, CertificateNotYetValidException {
-        X509Certificate certificate = CertificateUtil.getSelfSignedCertificate();
+        X509Certificate certificate = CertificateUtil.getWorkingSelfSignedCertificate();
         assertNotNull("Certificate was null.", certificate);
         certificate.checkValidity();
     }
@@ -32,7 +32,7 @@ public class CertificateUtilTest {
     public void testPublicKeyIsSameInKeyPairAndCertificate(){
         //Make sure keyPair is stored here in case this test is run first
         KeyPair keyPair = CertificateUtil.getOrGenerateRsaKeyPair();
-        X509Certificate certificate = CertificateUtil.getSelfSignedCertificate();
+        X509Certificate certificate = CertificateUtil.getWorkingSelfSignedCertificate();
         assertEquals("Public Key should be the same in key pair and certificate",
                 keyPair.getPublic(), certificate.getPublicKey());
     }

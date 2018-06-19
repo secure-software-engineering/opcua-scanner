@@ -56,7 +56,6 @@ class ScanningClient {
             tryToConnectAnonymously(endpointDescription);
             tryToConnectWithDumbLogin(endpointDescription);
         }
-        //TODO third phase: Certificate tests, see BSI assessment, table 22, suppressible errors
 
         ResultReporter.reportToFile(results);
     }
@@ -70,7 +69,7 @@ class ScanningClient {
                     .setEndpoint(endpoint)
                     .setIdentityProvider(new UsernameProvider(login.getUsername(), login.getPassword()))
                     .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
-                    .setCertificate(CertificateUtil.getSelfSignedCertificate())
+                    .setCertificate(CertificateUtil.getWorkingSelfSignedCertificate())
                     .setApplicationUri(CertificateUtil.APPLICATION_URI)
                     .build();
 
@@ -94,7 +93,7 @@ class ScanningClient {
         OpcUaClientConfig config = OpcUaClientConfig.builder()
                 .setEndpoint(endpoint)
                 .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
-                .setCertificate(CertificateUtil.getSelfSignedCertificate())
+                .setCertificate(CertificateUtil.getWorkingSelfSignedCertificate())
                 .setApplicationUri(CertificateUtil.APPLICATION_URI)
                 .build();
 
