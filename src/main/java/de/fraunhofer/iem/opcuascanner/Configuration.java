@@ -118,7 +118,6 @@ public class Configuration {
         }
     }
 
-    //TODO update README.md
     private static void parseIpAddressSetting(String setting) {
         String[] addresses = setting.trim().split(",");
         for (String potentialAddress : addresses){

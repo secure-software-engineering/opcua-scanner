@@ -66,22 +66,30 @@ The csv file can be imported to a table using standard office calculation
 A configuration file can be passed as a command line parameter.
 There is no need to pass a file, unless you differ from the default
 options. All options have default values, which are the same as in
-default_config.txt.
+default_config.txt. The default for ipRanges is applying a cidr suffix
+of /29 to all own IPv4 addresses.
 
  Configuration options for starting the scanner include:
 - <code>writeActivated</code> Whether the client should try write to
 the server. Beware of the potential consequences for running servers
 - <code>deleteActivated</code> Whether the client should try delete from
  the server. Beware of the potential consequences for running servers
-- <code>cidrSuffix</code> The CIDR-Suffix of the subnet to scan, i.e.,
-    fixed bits of the IP from start on. Used to determine the size of
-    the subnet. The larger the suffix, the smaller the part of the
-    subnet that will be scanned.
 - <code>port</code> The port to scan on.
 - <code>outputFileName</code> The file name of the csv file to produce.
     This should not include the file extension.
-- <code>ipAddresses</code> The ip addresses (or hostnames) which to use
-as a base for the CIDR-Suffix
+- <code>ipRanges</code> The ip addresses to scan, seperated by commas.
+    Can be either:
+    - A hostname
+    - A single IP address
+    - An IP address with a CIDR Suffix (such as 127.0.0.1/29). Hint:
+    CIDR Suffix = Fixed bits of the IP from start on. Used to determine
+    the size of the subnet. The larger the suffix, the smaller the part
+     of the subnet that will be scanned.
+    - Or an IP range, for example 127.0.0.1-20 will scan ip addresses
+    127.0.0.1 through 127.0.0.20. Only the block of the ip addresses
+    the last dot can be configured. If larger ranges should be scanned,
+    this can be done by listing multiple ranges.
+
 
 More reasonable configuration options could be:
 - a file containing (additional?) credentials to test
