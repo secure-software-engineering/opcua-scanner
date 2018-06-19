@@ -7,8 +7,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public class Configuration {
@@ -50,10 +50,9 @@ public class Configuration {
      * IP Ranges determining ip addresses to can. If these are empty {@link de.fraunhofer.iem.opcuascanner.utils.NetworkUtil}
      * will use the own ip addresses it detects instead with the default CIDR suffix.
      */
-    private static List<InetAddress> ipAddresses = new ArrayList<>();
+    private static Set<InetAddress> ipAddresses = new HashSet<>();
     private static final String IP_RANGES_SETTING = "ipRanges";
 
-    //TODO improve regex pattern
     private static final Pattern IP_ADDR_CIDR_PATTERN = Pattern.compile(
             "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\/(\\d|[012]\\d|3[012])$");
 
@@ -146,14 +145,28 @@ public class Configuration {
 
     private static void parseIpWithRange(String potentialAddress) {
         String[] rangeSplit = potentialAddress.trim().split("-");
-        try{
-            logger.info("Found ip address with range in config: {}", potentialAddress);
-            InetAddress address = InetAddress.getByName(rangeSplit[0]);
-            //TODO parse range9
+        if (rangeSplit.length == 2){
+            try{
+                //Construct upper and lower bound for ip range
+                String ipAddress =  rangeSplit[0];
+                String lastSectionOfIp = ipAddress.split("\\.")[3];
+                String firstSectionOfIp = ipAddress.substring(0,ipAddress.lastIndexOf('.')-1);
+                int lowerBound = Integer.parseInt(lastSectionOfIp);
+                int upperBound = Integer.parseInt(rangeSplit[1]);
 
-        } catch (UnknownHostException e) {
-            logger.info("Could not parse ip address: {}", potentialAddress);
-        }
+                for (int i = lowerBound; i <= upperBound; i++){
+                    //Construct ip address in range and add it to the addresses to scan
+                    String fullAddress = firstSectionOfIp + i;
+                    InetAddress inetAddress = InetAddress.getByName(fullAddress);
+                    ipAddresses.add(inetAddress);
+                }
+                logger.info("Found ip address with range in config: {}", potentialAddress);
+            } catch (UnknownHostException e) {
+                logger.info("Could not parse ip address: {}", potentialAddress);
+            }
+        } else {
+        logger.info("Could not parse ip address with range in config: {}", potentialAddress);
+       }
     }
 
     private static void parseIpWithCidrSuffix(String potentialAddress) {
@@ -204,7 +217,7 @@ public class Configuration {
         return port;
     }
 
-    public static List<InetAddress> getIpAddresses(){
+    public static Set<InetAddress> getIpAddresses(){
         return ipAddresses;
     }
 

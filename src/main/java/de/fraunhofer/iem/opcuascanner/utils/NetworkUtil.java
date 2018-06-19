@@ -21,8 +21,8 @@ public class NetworkUtil {
         //private constructor since utility class should not be instantiated
     }
 
-    private static List<InetAddress> getDefaultIpAddresses() {
-        List<InetAddress> defaultInetAddresses = new ArrayList<>();
+    private static Set<InetAddress> getDefaultIpAddresses() {
+        Set<InetAddress> defaultInetAddresses = new HashSet<>();
         logger.info("Scanning relative to own ip addresses.");
         List<InetAddress> ownIps = getOwnIpAddresses();
         for (InetAddress ownIp : ownIps){
@@ -82,7 +82,7 @@ public class NetworkUtil {
     public static Set<Inet4Address> getReachableHosts() {
         Set<Inet4Address> reachableHosts = new HashSet<>();
         //If there are ip addresses configured use these, else scan relative to your own
-        List<InetAddress> addressesToTry = !Configuration.getIpAddresses().isEmpty() ? Configuration.getIpAddresses() : getDefaultIpAddresses();
+        Set<InetAddress> addressesToTry = !Configuration.getIpAddresses().isEmpty() ? Configuration.getIpAddresses() : getDefaultIpAddresses();
         for (InetAddress inetAddress : addressesToTry) {
             if (inetAddress instanceof Inet4Address) {
                 logger.info("Trying to reach host {}", inetAddress);
