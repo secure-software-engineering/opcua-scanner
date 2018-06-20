@@ -58,6 +58,7 @@ class ScanningClient {
             tryToConnectWithExpiredCertificate(endpointDescription);
             tryToConnectWithCertificateThatsNotValidYet(endpointDescription);
             tryToConnectWithCertificateWithWrongHostname(endpointDescription);
+            tryToConnectWithCertificateWithWrongKeyUsage(endpointDescription);
         }
 
         ResultReporter.reportToFile(results);
@@ -143,6 +144,21 @@ class ScanningClient {
                 .setEndpoint(endpoint)
                 .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
                 .setCertificate(CertificateUtil.getCertificateWithWrongHostname())
+                .setApplicationUri(CertificateUtil.APPLICATION_URI)
+                .build();
+
+        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
+                Authentication.CERTIFICATE_WRONG_HOSTNAME);
+        results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
+    }
+
+    private static void tryToConnectWithCertificateWithWrongKeyUsage(EndpointDescription endpoint) {
+        logger.info("Trying to connect with certificate with wrong key usage.");
+        AccessPrivileges privileges = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
+        OpcUaClientConfig config = OpcUaClientConfig.builder()
+                .setEndpoint(endpoint)
+                .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
+                .setCertificate(CertificateUtil.generateCertificateWithWrongKeyUsage())
                 .setApplicationUri(CertificateUtil.APPLICATION_URI)
                 .build();
 
