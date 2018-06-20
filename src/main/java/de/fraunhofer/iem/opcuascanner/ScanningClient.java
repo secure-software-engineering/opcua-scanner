@@ -55,6 +55,7 @@ class ScanningClient {
             results.put(OpcuaUtil.getUrlWithSecurityDetail(endpointDescription), new AccessPrivileges());
             tryToConnectAnonymously(endpointDescription);
             tryToConnectWithDumbLogin(endpointDescription);
+            tryToConnectWithExpiredCertificate(endpointDescription);
         }
 
         ResultReporter.reportToFile(results);
@@ -89,6 +90,7 @@ class ScanningClient {
     }
 
     private static void tryToConnectAnonymously(EndpointDescription endpoint) {
+        logger.info("Trying to connect anonymously.");
         AccessPrivileges privileges = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
         OpcUaClientConfig config = OpcUaClientConfig.builder()
                 .setEndpoint(endpoint)
@@ -98,6 +100,21 @@ class ScanningClient {
                 .build();
 
         privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges, Authentication.ANONYMOUSLY);
+        results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
+    }
+
+    private static void tryToConnectWithExpiredCertificate(EndpointDescription endpoint) {
+        logger.info("Trying to connect with expired certificate.");
+        AccessPrivileges privileges = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
+        OpcUaClientConfig config = OpcUaClientConfig.builder()
+                .setEndpoint(endpoint)
+                .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
+                .setCertificate(CertificateUtil.getExpiredCertificate())
+                .setApplicationUri(CertificateUtil.APPLICATION_URI)
+                .build();
+
+        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
+                Authentication.EXPIRED_CERTIFICATE);
         results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
     }
 }
