@@ -52,13 +52,16 @@ public class CertificateUtil {
 
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
     private static final String DEFAULT_DNS_NAME = "localhost";
+    private static final String NOT_MY_DNS_NAME = "fraunhofer.de";
 
     private static final Logger logger = LogManager.getLogger(CertificateUtil.class);
 
+    // Store all the generated stuff, so we do not keep generating it, for example when testing multiple endpoints
     private static KeyPair keyPair;
     private static X509Certificate workingSelfSignedCertificate;
     private static X509Certificate expiredCertificate;
     private static X509Certificate notYetValidCertificate;
+    private static X509Certificate certificateWithWrongHostname;
 
 
     private CertificateUtil() {
@@ -121,8 +124,21 @@ public class CertificateUtil {
         return notYetValidCertificate;
     }
 
+
+    public static X509Certificate getCertificateWithWrongHostname(){
+        if (certificateWithWrongHostname == null) {
+            keyPair = getOrGenerateRsaKeyPair();
+            List dnsNames = new ArrayList<>();
+            dnsNames.add(NOT_MY_DNS_NAME);
+            try {
+                certificateWithWrongHostname = generateSelfSigned(today, inThreeYears, dnsNames);
+            } catch (Exception e) {
+                logger.info("Could not make self-signed certificate with wrong hostname: {}", e.getMessage());
+            }
+        }
+        return certificateWithWrongHostname;
+    }
     //TODO wrong certificate usage
-    //TODO Wrong hostname
 
     //Part below taken from eclipse milo with minor alterations
     private static X509Certificate generateSelfSigned(Date notBefore, Date notAfter, List<String> dnsNames)
