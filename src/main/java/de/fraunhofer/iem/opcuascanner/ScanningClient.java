@@ -62,6 +62,7 @@ class ScanningClient {
         ResultReporter.reportToFile(results);
     }
 
+
     private static void tryToConnectWithDumbLogin(EndpointDescription endpoint) {
         Login loginWithMostPrivileges = null;
         AccessPrivileges bestAccessPrivilegesYet = new AccessPrivileges();
@@ -79,7 +80,7 @@ class ScanningClient {
                     Authentication.COMMON_CREDENTIALS);
             if (privileges.betterThan(bestAccessPrivilegesYet, Authentication.COMMON_CREDENTIALS)){
                 results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
-                bestAccessPrivilegesYet = privileges;
+                bestAccessPrivilegesYet = privileges.copy();
                 loginWithMostPrivileges = login;
             }
         }

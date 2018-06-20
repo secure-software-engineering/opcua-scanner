@@ -68,4 +68,23 @@ public class AccessPrivileges {
         }
         return scoreForThis > scoreForOther || (scoreForThis == scoreForOther && testedForThis > testedForOther);
     }
+
+    /**
+     * Returns deep copy of this access privilege object. Necessary for comparison with previous privileges.
+     * @return A copy of these access privileges, but pointing to new arrays with the same values.
+     */
+    public AccessPrivileges copy(){
+        AccessPrivileges newPriv = new AccessPrivileges();
+        for (Privilege privilege : Privilege.values()){
+            for (Authentication authentication : Authentication.values()){
+                if (wasTested(privilege, authentication)){
+                    newPriv.setPrivilegeWasTested(privilege, authentication);
+                    if (isPrivilegePerAuthentication(privilege, authentication)){
+                        newPriv.setPrivilegePerAuthentication(privilege, authentication);
+                    }
+                }
+            }
+        }
+        return newPriv;
+    }
 }
