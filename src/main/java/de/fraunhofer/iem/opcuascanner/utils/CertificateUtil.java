@@ -62,6 +62,7 @@ public class CertificateUtil {
     private static X509Certificate expiredCertificate;
     private static X509Certificate notYetValidCertificate;
     private static X509Certificate certificateWithWrongHostname;
+    private static X509Certificate certificateWithWrongKeyUsage;
 
 
     private CertificateUtil() {
@@ -85,10 +86,10 @@ public class CertificateUtil {
     public static X509Certificate getWorkingSelfSignedCertificate(){
         if (workingSelfSignedCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            List dnsNames = new ArrayList<>();
+            List<String> dnsNames = new ArrayList<>();
             dnsNames.add(DEFAULT_DNS_NAME);
             try {
-                workingSelfSignedCertificate = generateSelfSigned(today, inThreeYears, dnsNames);
+                workingSelfSignedCertificate = generateSelfSigned(today, inThreeYears, dnsNames, true);
             } catch (Exception e) {
                 logger.info("Could not make working self-signed certificate: {}", e.getMessage());
             }
@@ -99,10 +100,10 @@ public class CertificateUtil {
     public static X509Certificate getExpiredCertificate(){
         if (expiredCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            List dnsNames = new ArrayList<>();
+            List<String> dnsNames = new ArrayList<>();
             dnsNames.add(DEFAULT_DNS_NAME);
             try {
-                expiredCertificate = generateSelfSigned(threeYearsAgo, today, dnsNames);
+                expiredCertificate = generateSelfSigned(threeYearsAgo, today, dnsNames, true);
             } catch (Exception e) {
                 logger.info("Could not make expired self-signed certificate: {}", e.getMessage());
             }
@@ -113,10 +114,10 @@ public class CertificateUtil {
     public static X509Certificate getCertificateThatsNotYetValid(){
         if (notYetValidCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            List dnsNames = new ArrayList<>();
+            List<String> dnsNames = new ArrayList<>();
             dnsNames.add(DEFAULT_DNS_NAME);
             try {
-                notYetValidCertificate = generateSelfSigned(inThreeYears, inThreeYears, dnsNames);
+                notYetValidCertificate = generateSelfSigned(inThreeYears, inThreeYears, dnsNames, true);
             } catch (Exception e) {
                 logger.info("Could not make self-signed certificate that is not yet valid: {}", e.getMessage());
             }
@@ -128,20 +129,34 @@ public class CertificateUtil {
     public static X509Certificate getCertificateWithWrongHostname(){
         if (certificateWithWrongHostname == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            List dnsNames = new ArrayList<>();
+            List<String> dnsNames = new ArrayList<>();
             dnsNames.add(NOT_MY_DNS_NAME);
             try {
-                certificateWithWrongHostname = generateSelfSigned(today, inThreeYears, dnsNames);
+                certificateWithWrongHostname = generateSelfSigned(today, inThreeYears, dnsNames, true);
             } catch (Exception e) {
                 logger.info("Could not make self-signed certificate with wrong hostname: {}", e.getMessage());
             }
         }
         return certificateWithWrongHostname;
     }
-    //TODO wrong certificate usage
+
+    public static X509Certificate generateCertificateWithWrongKeyUsage(){
+        if (certificateWithWrongKeyUsage == null) {
+            keyPair = getOrGenerateRsaKeyPair();
+            List<String> dnsNames = new ArrayList<>();
+            dnsNames.add(DEFAULT_DNS_NAME);
+            try {
+                certificateWithWrongKeyUsage = generateSelfSigned(today, inThreeYears, dnsNames, false);
+            } catch (Exception e) {
+                logger.info("Could not make self-signed certificate with wrong hostname: {}", e.getMessage());
+            }
+        }
+        return certificateWithWrongKeyUsage;
+    }
 
     //Part below taken from eclipse milo with minor alterations
-    private static X509Certificate generateSelfSigned(Date notBefore, Date notAfter, List<String> dnsNames)
+    private static X509Certificate generateSelfSigned(Date notBefore, Date notAfter, List<String> dnsNames,
+                                                      boolean correctKeyUsage)
             throws CertIOException, NoSuchAlgorithmException, OperatorCreationException, CertificateException {
 
         X500NameBuilder nameBuilder = new X500NameBuilder();
@@ -171,7 +186,8 @@ public class CertificateUtil {
                 subjectPublicKeyInfo
         );
 
-        addKeyUsage(certificateBuilder);
+        addKeyUsage(certificateBuilder, correctKeyUsage);
+
         addSubjectAlternativeNames(certificateBuilder, keyPair, dnsNames);
 
         ContentSigner contentSigner = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM)
@@ -183,19 +199,33 @@ public class CertificateUtil {
         return new JcaX509CertificateConverter().getCertificate(certificateHolder);
     }
 
-    private static void addKeyUsage(X509v3CertificateBuilder certificateBuilder) throws CertIOException {
-        certificateBuilder.addExtension(
-                Extension.keyUsage,
-                false,
-                new KeyUsage(
-                        KeyUsage.dataEncipherment |
-                                KeyUsage.digitalSignature |
-                                KeyUsage.keyAgreement |
-                                KeyUsage.keyCertSign |
-                                KeyUsage.keyEncipherment |
-                                KeyUsage.nonRepudiation
-                )
-        );
+    private static void addKeyUsage(X509v3CertificateBuilder certificateBuilder, boolean shouldBeCorrect)
+            throws CertIOException {
+        if (shouldBeCorrect){
+            certificateBuilder.addExtension(
+                    Extension.keyUsage,
+                    false,
+                    new KeyUsage(
+                            KeyUsage.dataEncipherment |
+                                    KeyUsage.digitalSignature |
+                                    KeyUsage.keyAgreement |
+                                    KeyUsage.keyCertSign |
+                                    KeyUsage.keyEncipherment |
+                                    KeyUsage.nonRepudiation
+                    )
+            );
+        } else {
+            certificateBuilder.addExtension(
+                    Extension.keyUsage,
+                    false,
+                    new KeyUsage(
+                            KeyUsage.dataEncipherment |
+                                    KeyUsage.digitalSignature |
+                                    KeyUsage.keyCertSign |
+                                    KeyUsage.keyEncipherment
+                    )
+            );
+        }
     }
 
     private static void addSubjectAlternativeNames(
