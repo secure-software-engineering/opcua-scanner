@@ -56,6 +56,7 @@ class ScanningClient {
             tryToConnectAnonymously(endpointDescription);
             tryToConnectWithDumbLogin(endpointDescription);
             tryToConnectWithExpiredCertificate(endpointDescription);
+            tryToConnectWithCertificateThatsNotValidYet(endpointDescription);
         }
 
         ResultReporter.reportToFile(results);
@@ -115,6 +116,21 @@ class ScanningClient {
 
         privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
                 Authentication.EXPIRED_CERTIFICATE);
+        results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
+    }
+
+    private static void tryToConnectWithCertificateThatsNotValidYet(EndpointDescription endpoint) {
+        logger.info("Trying to connect with certificate which is not valid yet.");
+        AccessPrivileges privileges = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
+        OpcUaClientConfig config = OpcUaClientConfig.builder()
+                .setEndpoint(endpoint)
+                .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
+                .setCertificate(CertificateUtil.getCertificateThatsNotYetValid())
+                .setApplicationUri(CertificateUtil.APPLICATION_URI)
+                .build();
+
+        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
+                Authentication.CERTIFICATE_NOT_VALID_YET);
         results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
     }
 }
