@@ -13,14 +13,15 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509ExtensionUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.eclipse.milo.opcua.stack.core.util.SelfSignedCertificateGenerator;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.Period;
@@ -50,12 +51,14 @@ public class CertificateUtil {
     private static Date inThreeYears = Date.from(inTheFuture.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
+    private static final String DEFAULT_DNS_NAME = "localhost";
 
     private static final Logger logger = LogManager.getLogger(CertificateUtil.class);
 
     private static KeyPair keyPair;
     private static X509Certificate workingSelfSignedCertificate;
     private static X509Certificate expiredCertificate;
+    private static X509Certificate notYetValidCertificate;
 
     private static List<String> dnsNames = new ArrayList<>();
     private static List<String> ipAddresses = new ArrayList<>();
@@ -83,11 +86,11 @@ public class CertificateUtil {
         if (workingSelfSignedCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
             dnsNames = new ArrayList<>();
-            dnsNames.add("localhost");
+            dnsNames.add(DEFAULT_DNS_NAME);
             try {
                 workingSelfSignedCertificate = generateSelfSigned(today, inThreeYears, dnsNames, ipAddresses);
             } catch (Exception e) {
-                logger.info("Could not make self-signed certificate: {}", e.getMessage());
+                logger.info("Could not make working self-signed certificate: {}", e.getMessage());
             }
         }
         return workingSelfSignedCertificate;
@@ -97,26 +100,37 @@ public class CertificateUtil {
         if (expiredCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
             dnsNames = new ArrayList<>();
-            dnsNames.add("localhost");
+            dnsNames.add(DEFAULT_DNS_NAME);
             try {
                 expiredCertificate = generateSelfSigned(threeYearsAgo, today, dnsNames, ipAddresses);
             } catch (Exception e) {
-                logger.info("Could not make self-signed certificate: {}", e.getMessage());
+                logger.info("Could not make expired self-signed certificate: {}", e.getMessage());
             }
         }
         return expiredCertificate;
     }
 
-    //TODO not yet valid
+    public static X509Certificate getCertificateThatsNotYetValid(){
+        if (notYetValidCertificate == null) {
+            keyPair = getOrGenerateRsaKeyPair();
+            dnsNames = new ArrayList<>();
+            dnsNames.add(DEFAULT_DNS_NAME);
+            try {
+                notYetValidCertificate = generateSelfSigned(inThreeYears, inThreeYears, dnsNames, ipAddresses);
+            } catch (Exception e) {
+                logger.info("Could not make self-signed certificate that is not yet valid: {}", e.getMessage());
+            }
+        }
+        return notYetValidCertificate;
+    }
+
     //TODO wrong certificate usage
     //TODO Wrong hostname
 
     //Part below taken from eclipse milo with minor alterations
-    private static X509Certificate generateSelfSigned(
-            Date notBefore,
-            Date notAfter,
-            List<String> dnsNames,
-            List<String> ipAddresses) throws Exception {
+    private static X509Certificate generateSelfSigned(Date notBefore, Date notAfter, List<String> dnsNames,
+            List<String> ipAddresses) throws CertIOException, NoSuchAlgorithmException, OperatorCreationException,
+            CertificateException {
 
         X500NameBuilder nameBuilder = new X500NameBuilder();
         nameBuilder.addRDN(BCStyle.CN, COMMON_NAME);
