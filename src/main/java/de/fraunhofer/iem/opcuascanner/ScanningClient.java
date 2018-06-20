@@ -57,6 +57,7 @@ class ScanningClient {
             tryToConnectWithDumbLogin(endpointDescription);
             tryToConnectWithExpiredCertificate(endpointDescription);
             tryToConnectWithCertificateThatsNotValidYet(endpointDescription);
+            tryToConnectWithCertificateWithWrongHostname(endpointDescription);
         }
 
         ResultReporter.reportToFile(results);
@@ -132,6 +133,21 @@ class ScanningClient {
 
         privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
                 Authentication.CERTIFICATE_NOT_VALID_YET);
+        results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
+    }
+
+    private static void tryToConnectWithCertificateWithWrongHostname(EndpointDescription endpoint) {
+        logger.info("Trying to connect with certificate with wrong hostname.");
+        AccessPrivileges privileges = results.get(OpcuaUtil.getUrlWithSecurityDetail(endpoint));
+        OpcUaClientConfig config = OpcUaClientConfig.builder()
+                .setEndpoint(endpoint)
+                .setKeyPair(CertificateUtil.getOrGenerateRsaKeyPair())
+                .setCertificate(CertificateUtil.getCertificateWithWrongHostname())
+                .setApplicationUri(CertificateUtil.APPLICATION_URI)
+                .build();
+
+        privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
+                Authentication.CERTIFICATE_WRONG_HOSTNAME);
         results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
     }
 }
