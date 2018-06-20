@@ -60,9 +60,6 @@ public class CertificateUtil {
     private static X509Certificate expiredCertificate;
     private static X509Certificate notYetValidCertificate;
 
-    private static List<String> dnsNames = new ArrayList<>();
-    private static List<String> ipAddresses = new ArrayList<>();
-
 
     private CertificateUtil() {
         //Do not instantiate this, this a util class.
@@ -85,10 +82,10 @@ public class CertificateUtil {
     public static X509Certificate getWorkingSelfSignedCertificate(){
         if (workingSelfSignedCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            dnsNames = new ArrayList<>();
+            List dnsNames = new ArrayList<>();
             dnsNames.add(DEFAULT_DNS_NAME);
             try {
-                workingSelfSignedCertificate = generateSelfSigned(today, inThreeYears, dnsNames, ipAddresses);
+                workingSelfSignedCertificate = generateSelfSigned(today, inThreeYears, dnsNames);
             } catch (Exception e) {
                 logger.info("Could not make working self-signed certificate: {}", e.getMessage());
             }
@@ -99,10 +96,10 @@ public class CertificateUtil {
     public static X509Certificate getExpiredCertificate(){
         if (expiredCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            dnsNames = new ArrayList<>();
+            List dnsNames = new ArrayList<>();
             dnsNames.add(DEFAULT_DNS_NAME);
             try {
-                expiredCertificate = generateSelfSigned(threeYearsAgo, today, dnsNames, ipAddresses);
+                expiredCertificate = generateSelfSigned(threeYearsAgo, today, dnsNames);
             } catch (Exception e) {
                 logger.info("Could not make expired self-signed certificate: {}", e.getMessage());
             }
@@ -113,10 +110,10 @@ public class CertificateUtil {
     public static X509Certificate getCertificateThatsNotYetValid(){
         if (notYetValidCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            dnsNames = new ArrayList<>();
+            List dnsNames = new ArrayList<>();
             dnsNames.add(DEFAULT_DNS_NAME);
             try {
-                notYetValidCertificate = generateSelfSigned(inThreeYears, inThreeYears, dnsNames, ipAddresses);
+                notYetValidCertificate = generateSelfSigned(inThreeYears, inThreeYears, dnsNames);
             } catch (Exception e) {
                 logger.info("Could not make self-signed certificate that is not yet valid: {}", e.getMessage());
             }
@@ -128,9 +125,8 @@ public class CertificateUtil {
     //TODO Wrong hostname
 
     //Part below taken from eclipse milo with minor alterations
-    private static X509Certificate generateSelfSigned(Date notBefore, Date notAfter, List<String> dnsNames,
-            List<String> ipAddresses) throws CertIOException, NoSuchAlgorithmException, OperatorCreationException,
-            CertificateException {
+    private static X509Certificate generateSelfSigned(Date notBefore, Date notAfter, List<String> dnsNames)
+            throws CertIOException, NoSuchAlgorithmException, OperatorCreationException, CertificateException {
 
         X500NameBuilder nameBuilder = new X500NameBuilder();
         nameBuilder.addRDN(BCStyle.CN, COMMON_NAME);
@@ -160,7 +156,7 @@ public class CertificateUtil {
         );
 
         addKeyUsage(certificateBuilder);
-        addSubjectAlternativeNames(certificateBuilder, keyPair, dnsNames, ipAddresses);
+        addSubjectAlternativeNames(certificateBuilder, keyPair, dnsNames);
 
         ContentSigner contentSigner = new JcaContentSignerBuilder(SIGNATURE_ALGORITHM)
                 .setProvider(new BouncyCastleProvider())
@@ -189,8 +185,7 @@ public class CertificateUtil {
     private static void addSubjectAlternativeNames(
             X509v3CertificateBuilder certificateBuilder,
             KeyPair keyPair,
-            List<String> dnsNames,
-            List<String> ipAddresses) throws CertIOException, NoSuchAlgorithmException {
+            List<String> dnsNames) throws CertIOException, NoSuchAlgorithmException {
 
         List<GeneralName> generalNames = new ArrayList<>();
 
@@ -199,11 +194,6 @@ public class CertificateUtil {
         dnsNames.stream()
                 .distinct()
                 .map(s -> new GeneralName(GeneralName.dNSName, s))
-                .forEach(generalNames::add);
-
-        ipAddresses.stream()
-                .distinct()
-                .map(s -> new GeneralName(GeneralName.iPAddress, s))
                 .forEach(generalNames::add);
 
         certificateBuilder.addExtension(
