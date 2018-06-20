@@ -93,7 +93,6 @@ public class CertificateUtil {
         return workingSelfSignedCertificate;
     }
 
-    //TODO try connecting with expired certificate
     public static X509Certificate getExpiredCertificate(){
         if (expiredCertificate == null) {
             keyPair = getOrGenerateRsaKeyPair();
