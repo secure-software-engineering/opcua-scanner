@@ -11,4 +11,3 @@
         </Root>
     </Loggers>
 </Configuration>
-<!--#[ua-netty-event-loop-1] WARN org.eclipse.milo.opcua.stack.core.application.InsecureCertificateValidator - Skipping trust chain verification for certificate: C=US, ST=CA, L=Folsom, OU=dev, O=digitalpetri, CN=Eclipse Milo Example Client -->
