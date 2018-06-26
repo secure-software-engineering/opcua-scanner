@@ -18,7 +18,7 @@ public class CommonCredentialsUtil {
         //Private constructor hides implicit public one
     }
 
-    public static final List<Login> logins = new ArrayList<>();
+    protected static final List<Login> logins = new ArrayList<>();
     static{
         logins.add(new Login("username", "password"));
         logins.add(new Login("user", "password"));
