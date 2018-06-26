@@ -147,7 +147,7 @@ class ScanningClient {
                 .build();
 
         privileges = PrivilegeTester.testPrivilege(new OpcUaClient(config), privileges,
-                Authentication.CERTIFICATE_WRONG_HOSTNAME);
+                Authentication.CERTIFICATE_WRONG_KEY_USAGE);
         results.put(OpcuaUtil.getUrlWithSecurityDetail(endpoint), privileges);
     }
 }
