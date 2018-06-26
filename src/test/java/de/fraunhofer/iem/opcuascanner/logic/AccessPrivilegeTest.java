@@ -2,8 +2,7 @@ package de.fraunhofer.iem.opcuascanner.logic;
 
 import org.junit.Test;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 public class AccessPrivilegeTest {
 
@@ -82,4 +81,30 @@ public class AccessPrivilegeTest {
         accessPrivileges.isPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
     }
 
+    @Test
+    public void testCopyIsCorrectAndIndependent(){
+        AccessPrivileges accessPrivileges = new AccessPrivileges();
+        accessPrivileges.setPrivilegeWasTested(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
+        AccessPrivileges copy = accessPrivileges.copy();
+        assertNotEquals("Copy of access Privileges should be seperate object.", accessPrivileges, copy);
+        for (Privilege privilege : Privilege.values()){
+            for (Authentication authentication : Authentication.values()){
+                assertEquals("Tested values should be the identical for the copy",
+                        accessPrivileges.wasTested(privilege, authentication),
+                        copy.wasTested(privilege, authentication));
+                if (accessPrivileges.wasTested(privilege, authentication)){
+                    assertEquals("Privileges should be the identical for the copy",
+                            accessPrivileges.isPrivilegePerAuthentication(privilege, authentication),
+                            copy.isPrivilegePerAuthentication(privilege, authentication));
+                }
+            }
+        }
+        copy.setPrivilegeWasTested(Privilege.CONNECT, Authentication.COMMON_CREDENTIALS);
+        assertFalse("Access Privileges and its copy should be independent.",
+                accessPrivileges.wasTested(Privilege.CONNECT, Authentication.COMMON_CREDENTIALS));
+        accessPrivileges.setPrivilegeWasTested(Privilege.READ, Authentication.COMMON_CREDENTIALS);
+        assertFalse("Access Privileges and its copy should be independent.",
+                copy.wasTested(Privilege.READ, Authentication.COMMON_CREDENTIALS));
+    }
 }
