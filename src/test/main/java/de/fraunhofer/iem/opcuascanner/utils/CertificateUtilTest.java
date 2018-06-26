@@ -27,7 +27,7 @@ public class CertificateUtilTest {
     @Test
     public void testGetCertificateReturnsValidCertificate() throws CertificateExpiredException, CertificateNotYetValidException {
         X509Certificate certificate = CertificateUtil.getWorkingSelfSignedCertificate();
-        assertNotNull("Certificate was null.", certificate);
+        assertNotNull("Valid certificate was null.", certificate);
         certificate.checkValidity();
     }
 
@@ -40,7 +40,7 @@ public class CertificateUtilTest {
     @Test
     public void testValidCertificateHasCorrectKeyUsage() throws CertificateParsingException {
         X509Certificate certificate = CertificateUtil.getWorkingSelfSignedCertificate();
-        assertNotNull("Certificate was null.", certificate);
+        assertNotNull("Valid certificate was null.", certificate);
         boolean[] keyusage = certificate.getKeyUsage();
         assertTrue("Certificate did not include keyUsage digitalSignature", keyusage[0]);
         assertTrue("Certificate did not include keyUsage nonRepudiation", keyusage[1]);
@@ -55,7 +55,7 @@ public class CertificateUtilTest {
     @Test
     public void testInvalidCertificateHasWrongKeyUsage() throws CertificateParsingException{
         X509Certificate certificate = CertificateUtil.generateCertificateWithWrongKeyUsage();
-        assertNotNull("Certificate was null.", certificate);
+        assertNotNull("Certificate with wrong key usage was null.", certificate);
         try{
             certificate.checkValidity();
         } catch (Exception e){
