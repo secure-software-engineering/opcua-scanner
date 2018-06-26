@@ -214,6 +214,13 @@ public class CertificateUtil {
                                     KeyUsage.nonRepudiation
                     )
             );
+            certificateBuilder.addExtension(
+                    Extension.extendedKeyUsage,
+                    false,
+                    new ExtendedKeyUsage(
+                            KeyPurposeId.id_kp_clientAuth
+                    )
+            );
         } else {
             certificateBuilder.addExtension(
                     Extension.keyUsage,
