@@ -22,7 +22,7 @@ public class ReporterTest {
 
     private static final Logger logger = LogManager.getLogger(ReporterTest.class);
 
-    private HashMap<String, AccessPrivileges> results  = new HashMap<>();
+    private final HashMap<String, AccessPrivileges> results  = new HashMap<>();
 
     @Before
     public void setUp(){

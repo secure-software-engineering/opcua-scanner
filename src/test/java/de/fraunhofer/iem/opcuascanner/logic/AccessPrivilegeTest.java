@@ -87,7 +87,7 @@ public class AccessPrivilegeTest {
         accessPrivileges.setPrivilegeWasTested(Privilege.READ, Authentication.ANONYMOUSLY);
         accessPrivileges.setPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
         AccessPrivileges copy = accessPrivileges.copy();
-        assertNotEquals("Copy of access Privileges should be seperate object.", accessPrivileges, copy);
+        assertNotEquals("Copy of access Privileges should be separate object.", accessPrivileges, copy);
         for (Privilege privilege : Privilege.values()){
             for (Authentication authentication : Authentication.values()){
                 assertEquals("Tested values should be the identical for the copy",

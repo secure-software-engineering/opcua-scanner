@@ -50,11 +50,11 @@ public class Configuration {
      * IP Ranges determining ip addresses to can. If these are empty {@link de.fraunhofer.iem.opcuascanner.utils.NetworkUtil}
      * will use the own ip addresses it detects instead with the default CIDR suffix.
      */
-    private static Set<InetAddress> ipAddresses = new HashSet<>();
+    private static final Set<InetAddress> ipAddresses = new HashSet<>();
     private static final String IP_RANGES_SETTING = "ipRanges";
 
     private static final Pattern IP_ADDR_CIDR_PATTERN = Pattern.compile(
-            "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\/(\\d|[012]\\d|3[012])$");
+            "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])/(\\d|[012]\\d|3[012])$");
 
     private static final Pattern IP_ADDR_RANGE_PATTERN = Pattern.compile(
             "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])-([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");

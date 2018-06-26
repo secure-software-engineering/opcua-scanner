@@ -33,7 +33,7 @@ class ScanningClient {
 
     private static final Logger logger = LogManager.getLogger(ScanningClient.class);
 
-    private static HashMap<String,AccessPrivileges> results = new HashMap<>();
+    private static final HashMap<String,AccessPrivileges> results = new HashMap<>();
 
     public static void main(String[] args) {
         logger.info("Scanner started");

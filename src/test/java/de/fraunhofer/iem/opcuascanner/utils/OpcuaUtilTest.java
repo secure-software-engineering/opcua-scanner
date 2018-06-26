@@ -34,7 +34,7 @@ public class OpcuaUtilTest {
                 String urlWithSecurityDetail = OpcuaUtil.getUrlWithSecurityDetail(endpointDescription);
                 String[] stringParts = urlWithSecurityDetail.split("#");
                 assertEquals("There should be the endpointUrl, the security policy and the security mode and clearly " +
-                        "seperated by # symbols.", 3, stringParts.length);
+                        "separated by # symbols.", 3, stringParts.length);
                 assertEquals("Url not contained where expected", stringParts[0], url);
                 assertEquals("Security Policy not contained where expected",stringParts[1], securityPolicy.name());
                 assertEquals("MessageSecurityMode not contained where expected", stringParts[2], messageSecurityMode.toString());

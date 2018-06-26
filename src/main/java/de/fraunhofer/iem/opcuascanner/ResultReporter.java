@@ -56,7 +56,7 @@ class ResultReporter {
             String server = resultForServer.getKey();
             AccessPrivileges privForServer = resultForServer.getValue();
 
-            outputBuilder.append(server + CSV_DELIMITER);
+            outputBuilder.append(server).append(CSV_DELIMITER);
 
             for(Authentication auth : Authentication.values()){
                 for (Privilege priv : Privilege.values()){
@@ -90,7 +90,7 @@ class ResultReporter {
         outputBuilder.append("ENDPOINT" + CSV_DELIMITER);
         for(Authentication auth : Authentication.values()) {
             for (Privilege priv : Privilege.values()) {
-                outputBuilder.append(auth.toString()+"_"+priv.toString() + CSV_DELIMITER);
+                outputBuilder.append(auth.toString()).append("_").append(priv.toString()).append(CSV_DELIMITER);
             }
         }
         outputBuilder.append(CSV_LINE_BREAK);

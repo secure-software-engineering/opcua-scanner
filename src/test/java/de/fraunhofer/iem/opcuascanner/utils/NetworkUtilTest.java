@@ -15,13 +15,13 @@ public class NetworkUtilTest {
 
     @Test
     public void testGetOwnIpReturnsValidIp() throws SocketException {
-        List<InetAddress> inetAdresses = NetworkUtil.getOwnIpAddresses();
-        assertNotNull("List of ip addresses was null.", inetAdresses);
+        List<InetAddress> inetAddresses = NetworkUtil.getOwnIpAddresses();
+        assertNotNull("List of ip addresses was null.", inetAddresses);
 
         Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
         if (networkInterfaces.hasMoreElements()){
             assertFalse("List of ip addresses was empty even though network interfaces are present.",
-                    inetAdresses.isEmpty());
+                    inetAddresses.isEmpty());
         }
     }
 

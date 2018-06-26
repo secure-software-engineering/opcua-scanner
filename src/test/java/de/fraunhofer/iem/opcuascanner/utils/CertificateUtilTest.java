@@ -47,7 +47,7 @@ public class CertificateUtilTest {
         assertTrue("Certificate did not include keyUsage keyEncipherment", keyusage[2]);
         assertTrue("Certificate did not include keyUsage dataEncipherment", keyusage[3]);
         List<String> extendedKeyUsage = certificate.getExtendedKeyUsage();
-        assertNotNull("Certificate did not contain extendend key usage", extendedKeyUsage);
+        assertNotNull("Certificate did not contain extended key usage", extendedKeyUsage);
         assertTrue("Certificate did not contain extended key usage clientAuth.",
                 extendedKeyUsage.contains(KeyPurposeId.id_kp_clientAuth.toString()));
     }

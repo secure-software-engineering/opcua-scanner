@@ -41,14 +41,14 @@ public class CertificateUtil {
     private static final String STATE_NAME = "NRW";
     private static final String COUNTRY_CODE = "DE";
 
-    private static Period validityPeriod = Period.ofYears(3);
+    private static final Period validityPeriod = Period.ofYears(3);
 
-    private static LocalDate now = LocalDate.now();
-    private static LocalDate inThePast = now.minus(validityPeriod);
-    private static LocalDate inTheFuture = now.plus(validityPeriod);
-    private static Date today = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    private static Date threeYearsAgo = Date.from(inThePast.atStartOfDay(ZoneId.systemDefault()).toInstant());
-    private static Date inThreeYears = Date.from(inTheFuture.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    private static final LocalDate now = LocalDate.now();
+    private static final LocalDate inThePast = now.minus(validityPeriod);
+    private static final LocalDate inTheFuture = now.plus(validityPeriod);
+    private static final Date today = Date.from(now.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    private static final Date threeYearsAgo = Date.from(inThePast.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    private static final Date inThreeYears = Date.from(inTheFuture.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
     private static final String SIGNATURE_ALGORITHM = "SHA256withRSA";
 
@@ -86,7 +86,7 @@ public class CertificateUtil {
             try {
                 workingSelfSignedCertificate = generateSelfSigned(today, inThreeYears, true);
             } catch (Exception e) {
-                logger.info("Could not make working self-signed certificate: {}", e.getMessage());
+                logger.error("Could not make working self-signed certificate: {}", e.getMessage());
             }
         }
         return workingSelfSignedCertificate;
@@ -98,7 +98,7 @@ public class CertificateUtil {
             try {
                 expiredCertificate = generateSelfSigned(threeYearsAgo, today, true);
             } catch (Exception e) {
-                logger.info("Could not make expired self-signed certificate: {}", e.getMessage());
+                logger.error("Could not make expired self-signed certificate: {}", e.getMessage());
             }
         }
         return expiredCertificate;
@@ -110,7 +110,7 @@ public class CertificateUtil {
             try {
                 notYetValidCertificate = generateSelfSigned(inThreeYears, inThreeYears, true);
             } catch (Exception e) {
-                logger.info("Could not make self-signed certificate that is not yet valid: {}", e.getMessage());
+                logger.error("Could not make self-signed certificate that is not yet valid: {}", e.getMessage());
             }
         }
         return notYetValidCertificate;
@@ -122,7 +122,7 @@ public class CertificateUtil {
             try {
                 certificateWithWrongKeyUsage = generateSelfSigned(today, inThreeYears, false);
             } catch (Exception e) {
-                logger.info("Could not make self-signed certificate with wrong hostname: {}", e.getMessage());
+                logger.error("Could not make self-signed certificate with wrong hostname: {}", e.getMessage());
             }
         }
         return certificateWithWrongKeyUsage;
