@@ -119,7 +119,6 @@ public class CertificateUtil {
     public static X509Certificate generateCertificateWithWrongKeyUsage(){
         if (certificateWithWrongKeyUsage == null) {
             keyPair = getOrGenerateRsaKeyPair();
-            List<String> dnsNames = new ArrayList<>();
             try {
                 certificateWithWrongKeyUsage = generateSelfSigned(today, inThreeYears, false);
             } catch (Exception e) {
