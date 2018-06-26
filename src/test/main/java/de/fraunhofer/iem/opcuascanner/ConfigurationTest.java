@@ -83,11 +83,11 @@ public class ConfigurationTest {
     @Test
     public void testIpRangeInIpAddresses(){
         boolean testCouldSucceed = true;
-        Map<String, Boolean> exptectedAddressIncluded = new HashMap<>();
+        Map<String, Boolean> expectedAddressIncluded = new HashMap<>();
         try{
             for (int lastNumInIp = TEST_IP_RANGE_START; lastNumInIp <= TEST_IP_RANGE_END; lastNumInIp++){
                 String ip = TEST_IP_RANGE_BASE + lastNumInIp;
-                exptectedAddressIncluded.put(InetAddress.getByName(ip).toString(), false);
+                expectedAddressIncluded.put(InetAddress.getByName(ip).toString(), false);
             }
         } catch (UnknownHostException e) {
             testCouldSucceed = false;
@@ -95,10 +95,10 @@ public class ConfigurationTest {
         if (testCouldSucceed ){
             Set<InetAddress> inetAddressSet = Configuration.getIpAddresses();
             for (InetAddress inetAddress : inetAddressSet){
-                if (exptectedAddressIncluded.containsKey(inetAddress.toString()))
-                    exptectedAddressIncluded.put(inetAddress.toString(), true);
+                if (expectedAddressIncluded.containsKey(inetAddress.toString()))
+                    expectedAddressIncluded.put(inetAddress.toString(), true);
             }
-            for (Map.Entry<String,Boolean> expectedAddress : exptectedAddressIncluded.entrySet()){
+            for (Map.Entry<String,Boolean> expectedAddress : expectedAddressIncluded.entrySet()){
                 assertTrue("Host "+ expectedAddress.getKey() + " should be contained in ip addresses.",
                         expectedAddress.getValue());
             }
