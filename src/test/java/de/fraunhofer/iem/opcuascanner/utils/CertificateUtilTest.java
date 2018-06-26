@@ -11,8 +11,7 @@ import java.security.cert.X509Certificate;
 import java.util.List;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class CertificateUtilTest {
 
@@ -51,6 +50,28 @@ public class CertificateUtilTest {
         assertNotNull("Certificate did not contain extendend key usage", extendedKeyUsage);
         assertTrue("Certificate did not contain extended key usage clientAuth.",
                 extendedKeyUsage.contains(KeyPurposeId.id_kp_clientAuth.toString()));
+    }
+
+    @Test
+    public void testInvalidCertificateHasWrongKeyUsage() throws CertificateParsingException{
+        X509Certificate certificate = CertificateUtil.generateCertificateWithWrongKeyUsage();
+        assertNotNull("Certificate was null.", certificate);
+        try{
+            certificate.checkValidity();
+        } catch (Exception e){
+            fail("Certificate should be valid, but with incorrect key usage.");
+        }
+        boolean[] keyUsage = certificate.getKeyUsage();
+        boolean keyUsageIsCorrect = keyUsage[0] && keyUsage[1] && keyUsage[2] && keyUsage[3];
+        List<String> extendedKeyUsage = certificate.getExtendedKeyUsage();
+        if (extendedKeyUsage == null){
+            //No extended key usage is always incorrect
+            keyUsageIsCorrect = false;
+        } else{
+            //Check if the specified extended key usage contain client authentication
+            keyUsageIsCorrect &= extendedKeyUsage.contains(KeyPurposeId.id_kp_clientAuth.toString());
+        }
+        assertFalse("Key usage was correct when it should not have been.", keyUsageIsCorrect);
     }
 
     @Test
