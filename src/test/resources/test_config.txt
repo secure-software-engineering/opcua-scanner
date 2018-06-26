@@ -12,4 +12,4 @@ port = 42
 
 outputFileName = testOutputFilename
 
-ipRanges = fraunhofer.de, 8.8.8.8-11, 192.03.134.7/29
+ipRanges = fraunhofer.de, 8.8.8.8-11, 192.03.134.29/29

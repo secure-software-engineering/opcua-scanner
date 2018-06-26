@@ -17,14 +17,12 @@ public class ConfigurationTest {
     private static final String TEST_IP_RANGE_BASE = "8.8.8.";
     private static final int TEST_IP_RANGE_START = 8; //NOSONAR
     private static final int TEST_IP_RANGE_END = 11;
-    private static final String TEST_IP_CIDR_BASE = "192.03.134.7"; //NOSONAR
-    private static final int TEST_IP_CIDR_SUFFIX = 29;
-
-    private File testConfig;
-
+    private static final String TEST_IP_CIDR_BASE = "192.03.134."; //NOSONAR
+    private static final int TEST_IP_CIDR_START = 25;
+    private static final int TEST_IP_CIDR_END = 30;
     @Before
     public void loadTestConfiguation(){
-        testConfig = new File("src/test/resources/test_config.txt");
+        File testConfig = new File("src/test/resources/test_config.txt");
         Configuration.tryToLoadConfigFile(testConfig);
     }
 
@@ -97,6 +95,33 @@ public class ConfigurationTest {
             for (InetAddress inetAddress : inetAddressSet){
                 if (expectedAddressIncluded.containsKey(inetAddress.toString()))
                     expectedAddressIncluded.put(inetAddress.toString(), true);
+            }
+            for (Map.Entry<String,Boolean> expectedAddress : expectedAddressIncluded.entrySet()){
+                assertTrue("Host "+ expectedAddress.getKey() + " should be contained in ip addresses.",
+                        expectedAddress.getValue());
+            }
+
+        }
+    }
+
+    @Test
+    public void testIpWithCidrSuffixInConfig(){
+        boolean testCouldSucceed = true;
+        Map<String, Boolean> expectedAddressIncluded = new HashMap<>();
+        try{
+            for (int lastNumInIp = TEST_IP_CIDR_START; lastNumInIp <= TEST_IP_CIDR_END; lastNumInIp++){
+                String ip = TEST_IP_CIDR_BASE + lastNumInIp;
+                expectedAddressIncluded.put(InetAddress.getByName(ip).toString(), false);
+            }
+        } catch (UnknownHostException e) {
+            testCouldSucceed = false;
+        }
+        if (testCouldSucceed ){
+            Set<InetAddress> inetAddressSet = Configuration.getIpAddresses();
+            for (InetAddress inetAddress : inetAddressSet){
+                if (expectedAddressIncluded.containsKey(inetAddress.toString())) {
+                    expectedAddressIncluded.put(inetAddress.toString(), true);
+                }
             }
             for (Map.Entry<String,Boolean> expectedAddress : expectedAddressIncluded.entrySet()){
                 assertTrue("Host "+ expectedAddress.getKey() + " should be contained in ip addresses.",
