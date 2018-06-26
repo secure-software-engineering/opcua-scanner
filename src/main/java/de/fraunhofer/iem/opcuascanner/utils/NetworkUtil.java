@@ -21,7 +21,7 @@ public class NetworkUtil {
         //private constructor since utility class should not be instantiated
     }
 
-    private static Set<InetAddress> getDefaultIpAddresses() {
+    protected static Set<InetAddress> getDefaultIpAddresses() {
         Set<InetAddress> defaultInetAddresses = new HashSet<>();
         logger.info("Scanning relative to own ip addresses.");
         List<InetAddress> ownIps = getOwnIpAddresses();
