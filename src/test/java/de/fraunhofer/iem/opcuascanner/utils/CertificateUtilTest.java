@@ -36,4 +36,18 @@ public class CertificateUtilTest {
         assertEquals("Public Key should be the same in key pair and certificate",
                 keyPair.getPublic(), certificate.getPublicKey());
     }
+
+    @Test(expected = CertificateNotYetValidException.class)
+    public void testGetNotYetValidCertificate() throws CertificateNotYetValidException, CertificateExpiredException {
+        X509Certificate certificate = CertificateUtil.getCertificateThatsNotYetValid();
+        assertNotNull("Certificate was null.", certificate);
+        certificate.checkValidity();
+    }
+
+    @Test(expected = CertificateExpiredException.class)
+    public void testGetExpiredCertificate() throws CertificateNotYetValidException, CertificateExpiredException {
+        X509Certificate certificate = CertificateUtil.getExpiredCertificate();
+        assertNotNull("Certificate was null.", certificate);
+        certificate.checkValidity();
+    }
 }
