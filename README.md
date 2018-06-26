@@ -8,7 +8,8 @@ implementation used for this scanner is
 This scanner scans a subnet relative to its own IP-address(es) and tries
  to reach other hosts on the OPC UA default port 4840 (or a specified
  port). The size of the scanned subnet is determined by a given
- [CIDR-Suffix](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing).
+ [CIDR-Suffix](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing),
+ an IP Range, a hostname or a mix of these.
  
 ## Video
 
@@ -21,7 +22,8 @@ This scanner scans a subnet relative to its own IP-address(es) and tries
 Endpoints are retrieved for all reachable hosts.
 
 For each endpoint, the scanning client tries to connect in several ways,
- such as anonymously or using common username/password combinations.
+ such as anonymously, using common username/password combinations and
+ with expired or not yet valid certificates.
 
 For each successful connection, the client tries to
 * read information from the server
