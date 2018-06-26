@@ -149,7 +149,7 @@ public class Configuration {
                 //Construct upper and lower bound for ip range
                 String ipAddress =  rangeSplit[0];
                 String lastSectionOfIp = ipAddress.split("\\.")[3];
-                String firstSectionOfIp = ipAddress.substring(0,ipAddress.lastIndexOf('.')-1);
+                String firstSectionOfIp = ipAddress.substring(0,ipAddress.lastIndexOf('.')+1);
                 int lowerBound = Integer.parseInt(lastSectionOfIp);
                 int upperBound = Integer.parseInt(rangeSplit[1]);
 
