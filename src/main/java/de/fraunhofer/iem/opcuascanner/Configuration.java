@@ -65,7 +65,7 @@ public class Configuration {
         //Do not instantiate this, this read once and only changed from outside for testing
     }
 
-    public static void tryToLoadConfigFile(File file) {
+    static void tryToLoadConfigFile(File file) {
         try(    FileReader fileReader = new FileReader(file);
                 BufferedReader reader = new BufferedReader(fileReader)){
             logger.info("Configuration file found at path: {}", file.getAbsolutePath());

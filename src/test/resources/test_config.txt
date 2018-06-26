@@ -1,0 +1,15 @@
+# Config file only used for testing
+
+writeActivated = true
+
+deleteActivated = false
+
+callActivated = true
+
+port = 42
+# Make sure no settings are read from comments
+#port = 666
+
+outputFileName = testOutputFilename
+
+ipRanges = test.com, 8.8.8.8-20, 192.03.134.7/29
