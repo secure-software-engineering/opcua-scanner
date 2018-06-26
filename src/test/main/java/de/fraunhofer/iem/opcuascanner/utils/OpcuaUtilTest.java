@@ -44,7 +44,7 @@ public class OpcuaUtilTest {
 
     @Test
     public void testTryToGetEndpoint(){
-        String testUrl = "127.0.0.1";
+        String testUrl = "127.0.0.1"; //NOSONAR this is for testing
         //Mock a reachable host to request endpoints from
         InetAddress testHost = mock(InetAddress.class);
         when(testHost.getHostAddress()).thenReturn(testUrl);
