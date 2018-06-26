@@ -107,4 +107,28 @@ public class AccessPrivilegeTest {
         assertFalse("Access Privileges and its copy should be independent.",
                 copy.wasTested(Privilege.READ, Authentication.COMMON_CREDENTIALS));
     }
+
+    @Test
+    public void testBetterThanIsFalseForCopy(){
+        AccessPrivileges accessPrivileges = new AccessPrivileges();
+        accessPrivileges.setPrivilegeWasTested(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges.setPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
+        AccessPrivileges copy = accessPrivileges.copy();
+        assertFalse("Access Privileges should not be better than their copy.",
+                accessPrivileges.betterThan(copy, Authentication.ANONYMOUSLY));
+        assertFalse("Copy of access Privileges should not be better than its original.",
+                copy.betterThan(accessPrivileges, Authentication.ANONYMOUSLY));
+    }
+
+    @Test
+    public void testBetterThan(){
+        AccessPrivileges accessPrivileges1 = new AccessPrivileges();
+        accessPrivileges1.setPrivilegeWasTested(Privilege.READ, Authentication.ANONYMOUSLY);
+        accessPrivileges1.setPrivilegePerAuthentication(Privilege.READ, Authentication.ANONYMOUSLY);
+        AccessPrivileges accessPrivileges2 = new AccessPrivileges();
+        assertTrue("Access Privileges which allow more should be better.",
+                accessPrivileges1.betterThan(accessPrivileges2, Authentication.ANONYMOUSLY));
+        assertFalse("Access Privileges which allow more should not be better..",
+                accessPrivileges2.betterThan(accessPrivileges1, Authentication.ANONYMOUSLY));
+    }
 }
