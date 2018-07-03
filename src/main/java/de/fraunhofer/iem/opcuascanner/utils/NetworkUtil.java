@@ -1,13 +1,24 @@
 package de.fraunhofer.iem.opcuascanner.utils;
 
-import de.fraunhofer.iem.opcuascanner.Configuration;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.Socket;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.net.util.SubnetUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-
-import java.net.*;
-import java.util.*;
+import de.fraunhofer.iem.opcuascanner.Configuration;
 
 public class NetworkUtil {
 
@@ -79,15 +90,15 @@ public class NetworkUtil {
      *
      * @return A list of addresses including all hosts which could be reached
      */
-    public static Set<Inet4Address> getReachableHosts() {
-        Set<Inet4Address> reachableHosts = new HashSet<>();
+    public static Set<InetSocketAddress> getReachableHosts() {
+        Set<InetSocketAddress> reachableHosts = new HashSet<>();
         //If there are ip addresses configured use these, else scan relative to your own
         Set<InetAddress> addressesToTry = !Configuration.getIpAddresses().isEmpty() ? Configuration.getIpAddresses() : getDefaultIpAddresses();
         for (InetAddress inetAddress : addressesToTry) {
             if (inetAddress instanceof Inet4Address) {
                 logger.info("Trying to reach host {}", inetAddress);
                 if (isPortOpen(inetAddress, Configuration.getPort())) {
-                    reachableHosts.add((Inet4Address) inetAddress);
+                    reachableHosts.add(new InetSocketAddress((Inet4Address) inetAddress, Configuration.getPort()));
                 }
             }
         }

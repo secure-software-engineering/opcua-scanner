@@ -1,5 +1,14 @@
 package de.fraunhofer.iem.opcuascanner.utils;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.when;
+
+import java.net.InetSocketAddress;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
 import org.eclipse.milo.opcua.stack.client.UaTcpStackClient;
 import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.MessageSecurityMode;
@@ -10,14 +19,6 @@ import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
-
-import java.net.InetAddress;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 @PowerMockIgnore("javax.management.*")
 @RunWith(PowerMockRunner.class)
@@ -45,9 +46,8 @@ public class OpcuaUtilTest {
     @Test
     public void testTryToGetEndpoint(){
         String testUrl = "127.0.0.1"; //NOSONAR this is for testing
-        //Mock a reachable host to request endpoints from
-        InetAddress testHost = mock(InetAddress.class);
-        when(testHost.getHostAddress()).thenReturn(testUrl);
+        int testPort = 4840;
+        InetSocketAddress testHost = new InetSocketAddress(testUrl, testPort);
 
         //Make two endpoints we expect
         EndpointDescription testEndpoint1 = new EndpointDescription("firstEndPointUrl", null, null,
@@ -61,12 +61,14 @@ public class OpcuaUtilTest {
         CompletableFuture<EndpointDescription[]> future = new CompletableFuture<>();
         future.complete(endpointsForNonDiscoveryEndpoint);
         PowerMockito.mockStatic(UaTcpStackClient.class);
-        when(UaTcpStackClient.getEndpoints(OpcuaUtil.ADDR_PREFIX + testUrl + OpcuaUtil.ADDR_SUFFIX)).thenReturn(future);
+        String fullHostAddress = OpcuaUtil.ADDR_PREFIX + testHost.getHostName() + ":" + testHost.getPort();
+        String fullHostAddressWithDiscovery = OpcuaUtil.ADDR_PREFIX + testHost.getHostName()
+                + OpcuaUtil.DISCOVERY_SUFFIX + ":" + testHost.getPort();
+        when(UaTcpStackClient.getEndpoints(fullHostAddress)).thenReturn(future);
 
         CompletableFuture<EndpointDescription[]> futureForDiscoveryEndpoint = new CompletableFuture<>();
         futureForDiscoveryEndpoint.complete(endpointsForDiscoveryEndpoint);
-        when(UaTcpStackClient.getEndpoints(OpcuaUtil.ADDR_PREFIX + testUrl + OpcuaUtil.DISCOVERY_SUFFIX
-                +OpcuaUtil.ADDR_SUFFIX)).thenReturn(futureForDiscoveryEndpoint);
+        when(UaTcpStackClient.getEndpoints(fullHostAddressWithDiscovery)).thenReturn(futureForDiscoveryEndpoint);
 
         //Now call the real function
         Set<EndpointDescription> returnedEndpoints = OpcuaUtil.tryToGetEndpoints(testHost);

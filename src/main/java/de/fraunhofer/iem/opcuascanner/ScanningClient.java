@@ -1,5 +1,18 @@
 package de.fraunhofer.iem.opcuascanner;
 
+import java.io.File;
+import java.net.InetSocketAddress;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
+import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
+import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
+import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
+
 import de.fraunhofer.iem.opcuascanner.logic.AccessPrivileges;
 import de.fraunhofer.iem.opcuascanner.logic.Authentication;
 import de.fraunhofer.iem.opcuascanner.logic.Login;
@@ -8,17 +21,6 @@ import de.fraunhofer.iem.opcuascanner.utils.CertificateUtil;
 import de.fraunhofer.iem.opcuascanner.utils.CommonCredentialsUtil;
 import de.fraunhofer.iem.opcuascanner.utils.NetworkUtil;
 import de.fraunhofer.iem.opcuascanner.utils.OpcuaUtil;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
-import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
-import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
-import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
-
-
-import java.io.File;
-import java.net.Inet4Address;
-import java.util.*;
 
 /**
  * This scanner detects its own ip, and scans the IPv4 range relative to that IP on the default OPC UA Port (using
@@ -43,10 +45,10 @@ class ScanningClient {
             Configuration.tryToLoadConfigFile(configFile);
         }
 
-        Set<Inet4Address> reachableHosts =  NetworkUtil.getReachableHosts();
+        Set<InetSocketAddress> reachableHosts = NetworkUtil.getReachableHosts();
 
         Set<EndpointDescription> allEndpoints = new HashSet<>();
-        for (Inet4Address reachableHost : reachableHosts) {
+        for (InetSocketAddress reachableHost : reachableHosts) {
             allEndpoints.addAll(OpcuaUtil.tryToGetEndpoints(reachableHost));
         }
 
