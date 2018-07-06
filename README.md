@@ -11,6 +11,9 @@ This scanner scans a subnet relative to its own IP-address(es) and tries
  [CIDR-Suffix](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing),
  an IP Range, a hostname or a mix of these.
  
+## Build Artifact 
+[Download Latest Build Artifact](https://muml-build.cs.upb.de/job/OPCUAScanner/lastSuccessfulBuild/artifact/)
+ 
 ## Video
 
 ![asciicast](https://github.com/mbruns42/opcua-scanner/blob/master/videos/gettingStarted.svg "OPC UA Scanner Getting Started")
