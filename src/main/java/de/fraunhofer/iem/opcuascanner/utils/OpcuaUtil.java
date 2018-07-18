@@ -1,6 +1,11 @@
 package de.fraunhofer.iem.opcuascanner.utils;
 
-import com.google.common.collect.ImmutableList;
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
@@ -11,12 +16,7 @@ import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.TimestampsToReturn;
 import org.eclipse.milo.opcua.stack.core.types.structured.EndpointDescription;
 
-
-import java.net.InetAddress;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CompletableFuture;
+import com.google.common.collect.ImmutableList;
 
 public class OpcuaUtil {
 
@@ -45,10 +45,11 @@ public class OpcuaUtil {
         return endpoint.getEndpointUrl() + securityPolicyUri + "#" + endpoint.getSecurityMode();
     }
 
-    public static Set<EndpointDescription> tryToGetEndpoints(InetAddress reachableHost) {
+    public static Set<EndpointDescription> tryToGetEndpoints(InetSocketAddress reachableHost) {
         Set<EndpointDescription> endpointDescriptionSet = new HashSet<>();
-        String fullHostAddress = ADDR_PREFIX + reachableHost.getHostAddress() + ADDR_SUFFIX;
-        String fullHostAddressWithDiscovery = ADDR_PREFIX + reachableHost.getHostAddress() + DISCOVERY_SUFFIX + ADDR_SUFFIX;
+        String fullHostAddress = ADDR_PREFIX + reachableHost.getHostName() + ":" + reachableHost.getPort();
+        String fullHostAddressWithDiscovery = ADDR_PREFIX + reachableHost.getHostName() + DISCOVERY_SUFFIX + ":"
+                + reachableHost.getPort();
         EndpointDescription[] endpoints;
         try {
             logger.info("Trying to get endpoints for reachable host at {}", fullHostAddress);
