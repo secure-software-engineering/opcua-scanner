@@ -3,7 +3,8 @@ language: java
 jdk:
   - oraclejdk8
   
-  
 cache:
   directories:
     - $HOME/.m2
+
+script: mvn verify surefire:test --fail-at-end
