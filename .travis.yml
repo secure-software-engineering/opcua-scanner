@@ -13,4 +13,4 @@ cache:
 jdk:
   - oraclejdk8
 
-script: mvn clean install
+script: mvn clean verify
