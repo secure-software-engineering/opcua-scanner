@@ -36,23 +36,25 @@ For each successful connection, the client tries to
 * call functions on the server if any where detected while browsing
 
 ## Execution
-To build and run the project, you need to have Maven and Java installed.
- Run
 
+### Run the scanner
+To run the scanner, Java needs to be installed. The build artifact can be used, if you want to use the scanner and only want to change the configuration (see below what can be configured) and do not intend to change the code.
+
+Download the artifact from the link above, make a config.txt if you want to change the configuration, then run it with
+
+<code> java -jar opcua-scanner-jar-with-dependencies.jar opcua-scanner/default_config.txt </code>
+
+### Build the project
+
+To build and run the project, both Maven and Java need to be installed. Run
  <code>mvn package </code>
-
- in the directory containing the pom.xml file.
-
-The output will show a message like
-
+ in the directory containing the pom.xml file. The output will show a message like
+ 
 <code>[INFO] Building jar: opcua-scanner/target/opcua-scanner-jar-with-dependencies.jar</code>
 
-
-This jar can be run to use the scanner
+This jar can be run to use the scanner with a configuration file, here default_config.txt
 
 <code> java -jar opcua-scanner/target/opcua-scanner-jar-with-dependencies.jar opcua-scanner/default_config.txt </code>
-
-with a configuration file, here default_config.txt
 
 ## Result Output 
 The output is written to a csv file offering an overview which
